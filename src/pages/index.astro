@@ -99,54 +99,58 @@ const meta = {
 <style>
 	.hero {
 		display: grid;
-		grid-template-columns: minmax(280px, 1fr) minmax(300px, 1.05fr);
+		grid-template-columns: minmax(0, 1fr) minmax(330px, 0.86fr);
 		align-items: center;
-		column-gap: clamp(40px, 7vw, 96px);
+		gap: clamp(32px, 6vw, 76px);
 		min-height: 0;
-		padding: 8px 0 40px;
+		padding: clamp(20px, 3vw, 40px) 0 0;
 		width: 100%;
 		max-width: 1100px;
 		margin: 0 auto;
 	}
 	.copy {
 		text-align: left;
-		max-width: 28rem;
+		max-width: 590px;
 		justify-self: start;
+		padding-left: clamp(0px, 3vw, 34px);
+		border-left: 2px solid hsl(var(--theme-accent));
 	}
 	.tagline {
 		font-family: var(--font-sans);
-		font-size: clamp(28px, 4vw, 40px);
-		font-weight: 700;
-		letter-spacing: -0.035em;
-		line-height: 1.1;
+		font-size: clamp(38px, 5vw, 66px);
+		font-weight: 680;
+		letter-spacing: -0.057em;
+		line-height: 0.99;
 		color: hsl(var(--theme-text));
-		margin: 0 0 12px;
-		max-width: 20ch;
+		margin: 0;
+		max-width: 13ch;
 	}
 	.lede {
 		font-family: var(--font-sans);
-		font-size: 15.5px;
+		font-size: 18px;
 		line-height: 1.5;
 		color: hsl(var(--theme-text) / 0.78);
-		margin: 0 0 22px;
+		margin: 18px 0 0;
 		max-width: 32ch;
 	}
 	.cta {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 12px;
+		gap: 12px 22px;
+		margin-top: 32px;
 	}
 	.cta-primary,
 	.cta-plain {
 		display: inline-flex;
 		align-items: center;
 		font-family: var(--font-sans);
-		font-size: 14.5px;
-		font-weight: 600;
+		min-height: 42px;
+		font-size: 15px;
+		font-weight: 650;
 		letter-spacing: -0.01em;
-		padding: 10px 20px;
-		border-radius: 3px;
+		padding: 9px 14px;
+		border-radius: 6px;
 		transition: background-color 0.2s ease, color 0.2s ease, text-decoration-color 0.2s ease,
 			transform 0.18s ease;
 	}
@@ -160,10 +164,8 @@ const meta = {
 	.cta-plain {
 		color: hsl(var(--theme-text) / 0.88);
 		background: transparent;
-		padding-left: 2px;
-		padding-right: 2px;
 		text-decoration: underline;
-		text-decoration-color: hsl(var(--theme-text) / 0.35);
+		text-decoration-color: hsl(var(--theme-text) / 0.4);
 		text-underline-offset: 4px;
 	}
 	.cta-plain:hover {
@@ -177,6 +179,7 @@ const meta = {
 
 	.product {
 		width: 100%;
+		max-width: 485px;
 		justify-self: end;
 	}
 	.chat {
@@ -321,39 +324,43 @@ const meta = {
 	}
 
 	.tldr {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
+		display: grid;
+		grid-template-columns: 190px minmax(0, 1fr);
+		gap: 38px;
+		align-items: start;
 		max-width: 1100px;
-		margin: 0 auto;
-		padding: 28px 0 40px;
-		border-top: 1px solid var(--hairline);
+		margin: 28px auto 0;
+		padding: 32px 0 38px;
+		border-top: 1px solid #505050;
+		border-bottom: 1px solid var(--hairline);
 		width: 100%;
 	}
 	.tldr-title {
 		font-family: var(--font-sans);
-		font-size: clamp(22px, 2.8vw, 28px);
+		font-size: 26px;
 		font-weight: 700;
 		letter-spacing: -0.03em;
-		color: hsl(var(--theme-text));
-		margin: 0 0 18px;
+		line-height: 1.1;
+		color: hsl(var(--theme-text) / 0.82);
+		margin: 0;
 	}
 	.tldr-list {
 		list-style: none;
 		padding: 0;
 		margin: 0;
-		max-width: 48ch;
+		max-width: 720px;
 		font-family: var(--font-sans);
-		font-size: 15.5px;
+		font-size: 17px;
 		line-height: 1.55;
 		color: hsl(var(--theme-text) / 0.88);
 		text-align: left;
+		display: grid;
+		gap: 11px;
 	}
 	.tldr-list li {
 		position: relative;
 		padding-left: 1.1em;
-		margin: 0 0 8px;
+		margin: 0;
 	}
 	.tldr-list li:last-child {
 		margin-bottom: 0;
@@ -362,7 +369,7 @@ const meta = {
 		content: "·";
 		position: absolute;
 		left: 0;
-		color: hsl(var(--theme-accent));
+		color: var(--faint);
 		font-weight: 700;
 	}
 	.tldr-list a {
@@ -390,21 +397,34 @@ const meta = {
 	@media (max-width: 900px) {
 		.hero {
 			grid-template-columns: 1fr;
-			gap: 20px;
-			padding: 4px 0 36px;
+			gap: 32px;
+			padding-top: 20px;
 		}
 		.copy {
 			max-width: none;
 		}
 		.product {
-			justify-self: stretch;
+			justify-self: start;
 			max-width: 520px;
+		}
+	}
+
+	@media (max-width: 850px) {
+		.tldr {
+			grid-template-columns: 1fr;
+			gap: 18px;
+			margin-top: 34px;
+			padding: 26px 0 32px;
+		}
+		.tldr-title {
+			font-size: 24px;
 		}
 	}
 
 	@media (max-width: 720px) {
 		.tagline {
-			max-width: 20ch;
+			font-size: clamp(38px, 12vw, 54px);
+			max-width: 13ch;
 		}
 		.lede {
 			max-width: 36ch;
