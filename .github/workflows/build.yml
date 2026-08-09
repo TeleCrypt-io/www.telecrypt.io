@@ -4,7 +4,6 @@ name: Deploy www site to GitHub Pages
 on:
   push:
     tags: ["www-v*"]
-  workflow_dispatch:
 
 permissions:
   contents: read
