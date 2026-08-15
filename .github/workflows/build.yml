@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages-${{ github.ref }}
@@ -19,16 +17,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Require an annotated immutable release tag
+        run: |
+          test "$(git cat-file -t "refs/tags/$GITHUB_REF_NAME")" = tag
 
       - uses: pnpm/action-setup@v6.0.8
 
       - uses: actions/setup-node@v6.4.0
         with:
-          node-version: 22
+          node-version: 22.14.0
           cache: pnpm
 
       - uses: actions/configure-pages@v6.0.0
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
       - run: pnpm build
 
       - uses: actions/upload-pages-artifact@v5.0.0
@@ -38,6 +43,10 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

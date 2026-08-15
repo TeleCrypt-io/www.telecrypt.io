@@ -104,7 +104,6 @@ body {
 .section-label {
 	font-family: var(--font-sans);
 	font-size: 11.5px;
-	font-weight: 500;
 	letter-spacing: 0.14em;
 	text-transform: uppercase;
 	color: hsl(var(--theme-text) / 0.5);
@@ -446,7 +445,7 @@ ul.work-list a:focus-visible {
 	*::before,
 	*::after {
 		transition: none !important;
-		animation-duration: 0.01ms !important;
+		animation-duration: 0s !important;
 		animation-iteration-count: 1 !important;
 		scroll-behavior: auto !important;
 	}

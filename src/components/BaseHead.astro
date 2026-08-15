@@ -31,7 +31,7 @@ const goatcounter = analytics?.goatcounterUrl;
     import.meta.env.PROD && (
     <>
         <link rel="sitemap" href={withBase("/sitemap-index.xml")}/>
-        <link href={withBase("/icons/apple-touch-icon.png")} rel="apple-touch-icon"/>
+        <link href={withBase("/icon.png")} rel="apple-touch-icon" sizes="512x512"/>
     </>
         )
     }
@@ -103,4 +103,3 @@ const goatcounter = analytics?.goatcounterUrl;
     <script is:inline type="text/partytown" data-goatcounter={goatcounter}
             async src="//gc.zgo.at/count.js"></script>
 )}
-
