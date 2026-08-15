@@ -42,8 +42,9 @@ probe the homeserver. The only way in is the authenticated client API.
 
 # Delegated authentication
 
-Synapse itself holds no passwords. Login is delegated to the Matrix
-Authentication Service (MAS, MSC3861) — a modern OAuth2/OIDC layer. Local
+Synapse itself holds no passwords. Production clients authenticate through the
+Matrix Authentication Service (MAS, MSC3861) using OAuth; they never use
+Matrix m.login.password. MAS may host the interactive login page. Local
 registration and password login are disabled in Synapse itself.
 
 MAS is the sole identity provider: it holds credentials directly rather than

@@ -1,4 +1,4 @@
-# build output — produced by CI, served from the `dist` branch (see .github/workflows/build.yml)
+# build output — produced by tagged GitHub Pages artifact deployments (see .github/workflows/build.yml)
 dist/
 .output/
 

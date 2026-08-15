@@ -25,7 +25,7 @@ The result is a sealed surface: no foreign server can query users, join rooms, o
 
 ## Delegated authentication
 
-Synapse itself holds no passwords. Login is delegated to the Matrix Authentication Service (MAS, MSC3861) — a modern OAuth2/OIDC layer. Local registration and password login are disabled in Synapse itself.
+Synapse itself holds no passwords. Production clients authenticate through the Matrix Authentication Service (MAS, MSC3861) using OAuth; they never use Matrix `m.login.password`. MAS may host the interactive login page. Local registration and password login are disabled in Synapse itself.
 
 MAS is the sole identity provider: it holds credentials directly rather than delegating to a separate upstream service, keeping a single sign-in path while the homeserver stays out of the credential business entirely.
 

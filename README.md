@@ -23,9 +23,6 @@ Built with [Astro](https://astro.build) on a Vim-styled theme
 The `.txt` files in `public/` are served verbatim — both as the Vim-buffer aesthetic and so agents
 can fetch machine-readable text directly.
 
-Navigation is Vim-style: press `:` then a command (`:about`, `:technology`, `:llms`, `:h`, `:q`),
-`j`/`k` to scroll, `g`/`G` for top/bottom, `u` to go back.
-
 ## Develop
 
 ```sh
