@@ -1,4 +1,6 @@
 ---
+import { seatPrice } from "@/site-config";
+
 const planUrl = "https://backend.telecrypt.io/plan";
 ---
 
@@ -6,7 +8,7 @@ const planUrl = "https://backend.telecrypt.io/plan";
 	<article class="plan">
 		<div class="plan-head">
 			<h2 class="plan-name">Early bird</h2>
-			<p class="plan-price">5&nbsp;EUR</p>
+			<p class="plan-price">{seatPrice}</p>
 		</div>
 		<ul class="plan-list">
 			<li>Chats</li>

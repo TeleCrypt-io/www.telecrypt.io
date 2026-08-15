@@ -1,6 +1,8 @@
 import type { SiteConfig } from "@/types";
 import type { AstroExpressiveCodeOptions } from "astro-expressive-code";
 
+export const seatPrice = "15 EUR per seat";
+
 export const siteConfig: SiteConfig = {
 	author: "TeleCrypt.io",
 	date: {

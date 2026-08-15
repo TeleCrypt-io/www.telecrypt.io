@@ -1,5 +1,6 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
+import { seatPrice } from "@/site-config";
 import { withBase } from "@/utils/path";
 
 const planUrl = "https://backend.telecrypt.io/plan";
@@ -72,7 +73,7 @@ const meta = {
 		<h2 class="tldr-title" id="tldr-title">TL;DR</h2>
 		<ul class="tldr-list">
 			<li>
-				<a href={withBase("/price/")}>Flat 5&nbsp;EUR per agent/person</a>
+				<a href={withBase("/price/")}>Flat {seatPrice}</a>
 			</li>
 			<li>
 				Truly E2EE (end-to-end)

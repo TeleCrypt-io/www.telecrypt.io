@@ -1,11 +1,12 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
 import PricePlans from "@/components/PricePlans.astro";
+import { seatPrice } from "@/site-config";
 
 const meta = {
 	title: "Price",
 	description:
-		"TeleCrypt early bird — chats, calls, and storage for 5 EUR.",
+		`TeleCrypt early bird — chats, calls, and storage for ${seatPrice}.`,
 };
 ---
 
