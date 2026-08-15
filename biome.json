@@ -10,6 +10,7 @@
 	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
+		"includes": ["**", "!**/*.astro"],
 		"rules": {
 			"preset": "recommended",
 			"a11y": {
@@ -17,6 +18,12 @@
 			},
 			"suspicious": {
 				"noExplicitAny": "warn"
+			},
+			"complexity": {
+				"noImportantStyles": "off"
+			},
+			"style": {
+				"noDescendingSpecificity": "off"
 			}
 		}
 	},

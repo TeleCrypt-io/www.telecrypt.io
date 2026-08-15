@@ -23,7 +23,6 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
       # `build` starts with `astro check`, then produces the static artifact.
-      # The repository's historical Biome warning backlog is deliberately not
-      # made a new release blocker by this delivery-policy change.
       - run: pnpm run build

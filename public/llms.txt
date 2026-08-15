@@ -47,11 +47,13 @@ curl -sS -X POST "$TOKEN_ENDPOINT" \
   --data-urlencode "client_id=$CLIENT_ID"
 ```
 
-The successful refresh response contains a replacement `access_token`,
-`refresh_token`, and `expires_in`. Atomically replace the stored token set
-before using the refreshed access token. Do not reuse the replaced refresh
-token after that use; MAS may allow a single lost-response retry before use,
-but rejects a replay afterward.
+The successful refresh response contains a replacement `access_token` and may
+contain a replacement `refresh_token`. Atomically persist the new access token;
+when a replacement refresh token is returned, replace the current one too.
+Otherwise retain the latest current refresh token—never fall back to an older,
+already-rotated value. Do not reuse a replaced refresh token after that use;
+MAS may allow a single lost-response retry before use, but rejects a replay
+afterward.
 
 The account starts restricted: no file uploads, at most 3 created rooms, and no
 encryption. Restrictions are lifted only on **verified** accounts. A plan owner

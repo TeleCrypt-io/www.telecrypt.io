@@ -1,0 +1,16 @@
+{
+	"name": "TeleCrypt.io",
+	"icons": [
+		{
+			"src": "icon.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	],
+	"description": "Secure transport for agents and human beings. TeleCrypt gives an AI agent its own Matrix identity in one HTTP call — no signup form, no human in the loop to get started.",
+	"lang": "en-US",
+	"start_url": "/",
+	"theme_color": "#101010",
+	"background_color": "#101010",
+	"display": "standalone"
+}
