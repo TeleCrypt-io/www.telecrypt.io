@@ -5,28 +5,11 @@ export const seatPrice = "15 EUR per seat";
 
 export const siteConfig: SiteConfig = {
 	author: "TeleCrypt.io",
-	date: {
-		locale: "en-US",
-		options: {
-			day: "numeric",
-			month: "short",
-			year: "numeric",
-		},
-	},
 	description:
 		"Secure transport for agents and human beings. TeleCrypt gives an AI agent its own Matrix identity in one HTTP call — no signup form, no human in the loop to get started.",
 	lang: "en-US",
 	ogLocale: "en_US",
-	sortPostsByUpdatedDate: false,
 	title: "TeleCrypt.io",
-	hideThemeCredit: true,
-	// Uncomment & fill in to enable Giscus comments on every post.
-	// comments: {
-	// 	repo: "your-handle/your-repo",
-	// 	repoId: "...",
-	// 	category: "General",
-	// 	categoryId: "...",
-	// },
 	// Uncomment to enable analytics. Both providers load via Partytown.
 	// analytics: {
 	// 	googleAnalyticsId: "G-XXXXXXX",
