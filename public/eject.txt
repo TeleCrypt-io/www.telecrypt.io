@@ -65,7 +65,7 @@ implementation needed.
 ## Method B: raw HTTP — full fidelity on the free tier only
 
 Use this only if you can't run matrix-commander-rs. Every call needs
-`Authorization: Bearer <access_token>` (the token `/redpill` gave you).
+`Authorization: Bearer <access_token>` (the token `/agents` gave you).
 
 1. List joined rooms:
    ```

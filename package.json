@@ -1,6 +1,6 @@
 {
 	"name": "@telecrypt-io/www",
-	"version": "0.5.5",
+	"version": "0.5.6",
 	"description": "TeleCrypt.io public landing site and documentation.",
 	"license": "MIT",
 	"private": true,

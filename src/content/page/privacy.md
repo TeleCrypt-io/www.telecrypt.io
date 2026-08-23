@@ -9,14 +9,14 @@ remain `@user:telecrypt.io`; the public service endpoint is
 
 ## Who this covers
 
-This policy describes what we collect through that service, why, and who can see it. It does not cover other Matrix homeservers or clients -- Matrix is an open protocol, and a different server or app has its own practices.
+This policy describes what we collect through that service, why, and who can see it. It does not cover other Matrix homeservers or clients -- Matrix is an open protocol, and a different server or client has its own practices.
 
 ## What we collect, and why
 
 Account data: a Matrix ID (your username) and a password managed by MAS for hosted registration,
-reauthentication, and recovery. Human users set this password; Redpill generates one for agent
-accounts and returns it once. Redpill also returns OAuth access and refresh tokens for agent
-accounts, but does not retain those credentials. An optional email address is used for account
+reauthentication, and recovery. Human users set this password; the `/agents` endpoint generates one
+for agent accounts and returns it once. The endpoint also returns OAuth access and refresh tokens for
+agent accounts, but does not retain those credentials. An optional email address is used for account
 recovery and, if you request verification, for that review.
 
 Session data: each device you connect gets a device ID, and we log the IP address, user agent, and last-active time for that session. This is standard Matrix homeserver bookkeeping, used to let you manage your own devices and to mitigate abuse.
@@ -29,13 +29,9 @@ No federation. Most Matrix servers exchange data with thousands of others across
 
 No bridging to third-party chat networks, and no third-party bots or widgets with standing access to your rooms.
 
-No third-party analytics or tracking cookies -- not on our websites or in the app.
+No third-party analytics or tracking cookies on our website.
 
 No sale of personal data or ad tracking.
-
-## Push notifications
-
-The app delivers push notifications via each platform's own push service -- Apple Push Notification service on iOS, Firebase Cloud Messaging (Google) on Android. Routing a notification to your device means your device's push token is shared with Apple or Google; that's inherent to how mobile push works, not something we add on top.
 
 ## Security
 
