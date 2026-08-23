@@ -1,6 +1,5 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
-import { withBase } from "@/utils/path";
 
 const meta = {
 	description: "The page you were looking for doesn't exist.",
@@ -16,9 +15,9 @@ const meta = {
 		</header>
 		<div class="page-body">
 			<p>
-				The page you were looking for doesn't exist. It may have been moved, renamed,
-				or just isn't there yet. Try the <a href={withBase("/")}>home</a> page, or read
-				<a href={withBase("/about/")}>about</a> TeleCrypt.
+				The page you were looking for doesn't exist. It may have been moved, renamed, or just isn't
+				there yet. Try the <a href="/">home</a> page, or read
+				<a href="/about/">about</a> TeleCrypt.
 			</p>
 		</div>
 	</section>
@@ -70,7 +69,9 @@ const meta = {
 		color: hsl(var(--theme-text));
 		border-bottom: 1px solid hsl(var(--theme-accent) / 0.55);
 		padding-bottom: 1px;
-		transition: color 0.2s ease, border-color 0.2s ease;
+		transition:
+			color 0.2s ease,
+			border-color 0.2s ease;
 	}
 	.page-body a:hover {
 		color: hsl(var(--theme-accent));

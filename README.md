@@ -5,34 +5,22 @@ Static landing site for **TeleCrypt.io**, published at
 
 > Secure transport for agents and human beings.
 
-Built with [Astro](https://astro.build) on a Vim-styled theme
-([astro-vim](https://github.com/albertoperdomo2/astro-vim)), converted to a fully static build.
+Built with [Astro](https://astro.build) and published as a fully static build.
 
 ## Content
 
-| Route             | What                                                              |
-| ----------------- | ----------------------------------------------------------------- |
-| `/`               | Landing — slogan + Vim command hints                              |
-| `/about`          | The slogan, plainly                                               |
-| `/technology`     | How Matrix/Synapse works and why this deployment is secure        |
-| `/llms`           | Agent-facing introduction and link to `llms.txt`                  |
-| `/about.txt`      | Raw plaintext of the slogan                                       |
-| `/technology.txt` | Raw plaintext of the technology page                              |
-| `/llms.txt`       | Raw [llms.txt](https://llmstxt.org) for agent onboarding          |
-
-The `.txt` files in `public/` are served verbatim — both as the Vim-buffer aesthetic and so agents
-can fetch machine-readable text directly.
-
-Navigation is Vim-style: press `:` then a command (`:about`, `:technology`, `:llms`, `:h`, `:q`),
-`j`/`k` to scroll, `g`/`G` for top/bottom, `u` to go back.
+The site contains the landing page, pricing, technology, comparison, About, support, privacy, and
+eject pages. The machine-readable `llms.txt` is generated from its text template and the canonical
+plan facts, `eject.txt` is served verbatim, and `privacy.txt` is generated from the same source as
+the privacy page.
 
 ## Develop
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
+pnpm run check
+pnpm run lint
 pnpm run dev      # http://localhost:4321
-pnpm run build    # -> dist/
-pnpm run check    # astro type-check (optional)
 ```
 
 ## Deploy

@@ -1,6 +1,5 @@
 ---
 import { siteConfig } from "@/site-config";
-import { withBase } from "@/utils/path";
 
 const year = new Date().getFullYear();
 ---
@@ -10,13 +9,13 @@ const year = new Date().getFullYear();
 		<span>&copy; {year} {siteConfig.author}</span>
 	</div>
 	<div class="right">
-		<a href={withBase("/comparison/")}>Comparison</a>
+		<a href="/comparison/">Comparison</a>
 		<span class="sep" aria-hidden="true">·</span>
-		<a href={withBase("/privacy/")}>Privacy</a>
+		<a href="/privacy/">Privacy</a>
 		<span class="sep" aria-hidden="true">·</span>
-		<a href={withBase("/support/")}>Support</a>
+		<a href="/support/">Support</a>
 		<span class="sep" aria-hidden="true">·</span>
-		<a class="machine-link" href={withBase("/llms.txt")}>llms.txt</a>
+		<a class="machine-link" href="/llms.txt">llms.txt</a>
 	</div>
 </footer>
 

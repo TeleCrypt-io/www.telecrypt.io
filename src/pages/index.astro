@@ -1,9 +1,6 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
-import { seatPrice } from "@/site-config";
-import { withBase } from "@/utils/path";
-
-const planUrl = "https://backend.telecrypt.io/plan";
+import { planUrl, seatPrice } from "@/site-config";
 
 const meta = {
 	title: "TeleCrypt.io",
@@ -19,8 +16,8 @@ const meta = {
 			<p class="lede">Text. Media. Files.</p>
 
 			<div class="cta">
-				<a class="cta-plain" href={withBase("/technology/")}>/technology</a>
-				<a class="cta-plain" href={withBase("/llms.txt")}>AI: llms.txt</a>
+				<a class="cta-plain" href="/technology/">/technology</a>
+				<a class="cta-plain" href="/llms.txt">AI: llms.txt</a>
 				<a class="cta-primary" href={planUrl}>Humans: get it.</a>
 			</div>
 		</div>
@@ -31,8 +28,19 @@ const meta = {
 					<span class="chat-title">ops · Emma, Sam, Agent</span>
 					<span class="chat-lock">
 						<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-							<rect x="3" y="7" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
-							<path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+							<rect
+								x="3"
+								y="7"
+								width="10"
+								height="8"
+								rx="1.5"
+								stroke="currentColor"
+								stroke-width="1.4"></rect>
+							<path
+								d="M5 7V5a3 3 0 0 1 6 0v2"
+								stroke="currentColor"
+								stroke-width="1.4"
+								stroke-linecap="round"></path>
 						</svg>
 						E2EE
 					</span>
@@ -47,7 +55,7 @@ const meta = {
 						<div class="voice">
 							<span class="voice-play" aria-hidden="true">
 								<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-									<path d="M5 3.5v9l8-4.5-8-4.5Z"/>
+									<path d="M5 3.5v9l8-4.5-8-4.5Z"></path>
 								</svg>
 							</span>
 							<span class="voice-wave" aria-hidden="true">
@@ -73,7 +81,7 @@ const meta = {
 		<h2 class="tldr-title" id="tldr-title">TL;DR</h2>
 		<ul class="tldr-list">
 			<li>
-				<a href={withBase("/price/")}>Flat {seatPrice}</a>
+				<a href="/price/">Flat {seatPrice}</a>
 			</li>
 			<li>
 				Truly E2EE (end-to-end)
@@ -85,11 +93,14 @@ const meta = {
 				<a href="https://github.com/orgs/TeleCrypt-io/repositories" rel="noopener">Open code</a>
 			</li>
 			<li>
-				Right (and tools) to <a href={withBase("/eject/")}>eject</a>
+				Right (and tools) to <a href="/eject/">eject</a>
 			</li>
 			<li>
 				In
-				<a href="https://www.perplexity.ai/search/who-is-using-matrix-synapse-an-NmXT6aSlQPGsY0xQ1Td39A" rel="noopener">
+				<a
+					href="https://www.perplexity.ai/search/who-is-using-matrix-synapse-an-NmXT6aSlQPGsY0xQ1Td39A"
+					rel="noopener"
+				>
 					good company
 				</a>: NATO, the UN, the Bundeswehr, the UK Ministry of Defence, and more.
 			</li>
@@ -152,7 +163,10 @@ const meta = {
 		letter-spacing: -0.01em;
 		padding: 9px 14px;
 		border-radius: 6px;
-		transition: background-color 0.2s ease, color 0.2s ease, text-decoration-color 0.2s ease,
+		transition:
+			background-color 0.2s ease,
+			color 0.2s ease,
+			text-decoration-color 0.2s ease,
 			transform 0.18s ease;
 	}
 	.cta-primary {
@@ -305,18 +319,42 @@ const meta = {
 		background: hsl(var(--theme-text) / 0.55);
 		height: var(--h, 40%);
 	}
-	.voice-wave i:nth-child(1) { --h: 28%; }
-	.voice-wave i:nth-child(2) { --h: 55%; }
-	.voice-wave i:nth-child(3) { --h: 78%; }
-	.voice-wave i:nth-child(4) { --h: 42%; }
-	.voice-wave i:nth-child(5) { --h: 90%; }
-	.voice-wave i:nth-child(6) { --h: 60%; }
-	.voice-wave i:nth-child(7) { --h: 35%; }
-	.voice-wave i:nth-child(8) { --h: 72%; }
-	.voice-wave i:nth-child(9) { --h: 48%; }
-	.voice-wave i:nth-child(10) { --h: 85%; }
-	.voice-wave i:nth-child(11) { --h: 40%; }
-	.voice-wave i:nth-child(12) { --h: 58%; }
+	.voice-wave i:nth-child(1) {
+		--h: 28%;
+	}
+	.voice-wave i:nth-child(2) {
+		--h: 55%;
+	}
+	.voice-wave i:nth-child(3) {
+		--h: 78%;
+	}
+	.voice-wave i:nth-child(4) {
+		--h: 42%;
+	}
+	.voice-wave i:nth-child(5) {
+		--h: 90%;
+	}
+	.voice-wave i:nth-child(6) {
+		--h: 60%;
+	}
+	.voice-wave i:nth-child(7) {
+		--h: 35%;
+	}
+	.voice-wave i:nth-child(8) {
+		--h: 72%;
+	}
+	.voice-wave i:nth-child(9) {
+		--h: 48%;
+	}
+	.voice-wave i:nth-child(10) {
+		--h: 85%;
+	}
+	.voice-wave i:nth-child(11) {
+		--h: 40%;
+	}
+	.voice-wave i:nth-child(12) {
+		--h: 58%;
+	}
 	.voice-dur {
 		font-family: var(--font-mono);
 		font-size: 11px;
@@ -390,9 +428,15 @@ const meta = {
 		.tldr {
 			animation: intro-fade-up 420ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
 		}
-		.copy { animation-delay: 40ms; }
-		.product { animation-delay: 140ms; }
-		.tldr { animation-delay: 220ms; }
+		.copy {
+			animation-delay: 40ms;
+		}
+		.product {
+			animation-delay: 140ms;
+		}
+		.tldr {
+			animation-delay: 220ms;
+		}
 	}
 
 	@media (max-width: 900px) {
