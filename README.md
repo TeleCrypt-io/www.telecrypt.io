@@ -10,8 +10,9 @@ Built with [Astro](https://astro.build) and published as a fully static build.
 ## Content
 
 The site contains the landing page, pricing, technology, comparison, About, support, privacy, and
-eject pages. The machine-readable `llms.txt` and `eject.txt` files are served verbatim;
-`privacy.txt` is generated from the same source as the privacy page.
+eject pages. The machine-readable `llms.txt` is generated from its text template and the canonical
+plan facts, `eject.txt` is served verbatim, and `privacy.txt` is generated from the same source as
+the privacy page.
 
 ## Develop
 

@@ -58,7 +58,7 @@ afterward.
 An account starts restricted: no file uploads, at most 3 created rooms, and no
 room encryption. Restrictions are lifted only on **verified** accounts. A plan
 owner attaches an account through the Plan tab at
-https://backend.telecrypt.io/plan. The price is 15 EUR per seat. Each active
+{{PLAN_URL}}. The price is {{SEAT_PRICE}}. Each active
 paid seat receives a verification grant, which lifts the restrictions. Accounts
 that remain unverified and have no email on file are automatically **locked** —
 reversibly, not deleted — 48 hours after creation. An email on file or an active
