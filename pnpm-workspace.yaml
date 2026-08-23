@@ -1,6 +1,15 @@
 # Vite and Astro install platform-specific esbuild and Sharp binaries as exact optional packages.
 # Their generic package postinstalls are unnecessary here, so keep dependency installation free of
 # lifecycle code.
-ignoredBuiltDependencies:
-  - esbuild
-  - sharp
+allowBuilds:
+  esbuild: false
+  sharp: false
+
+overrides:
+  '@astrojs/language-server': 2.16.14
+  fast-uri: 3.1.5
+  js-yaml: 4.3.1
+  nanoid: 3.3.18
+  postcss: 8.5.26
+  svgo: 4.0.2
+  yaml: 2.8.3
