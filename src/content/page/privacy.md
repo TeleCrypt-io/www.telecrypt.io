@@ -39,7 +39,7 @@ All traffic is encrypted in transit (TLS). Passwords are hashed and never stored
 
 ## Your data, your control
 
-You can view and manage your account and devices with any compatible Matrix client. You can export everything you own -- every message, room state, and media file -- yourself, using only your own access token: see /eject for the exact steps.
+You can view and manage your account and devices with any compatible Matrix client. You can export everything you own -- every message, room state, and media file -- yourself, using only your own access token: see [/eject.txt](/eject.txt) for the exact steps.
 
 To delete your account, email support@telecrypt.io. We'll erase what only you had access to. As with any messaging service built around shared rooms, messages you sent to other people may remain visible to them afterward -- we can only forget what only you could see.
 

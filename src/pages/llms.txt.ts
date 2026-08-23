@@ -1,5 +1,5 @@
-import llmsTemplate from "../content/llms.txt?raw";
 import { planUrl, seatPrice } from "@/site-config";
+import llmsTemplate from "../content/llms.txt?raw";
 
 export function GET() {
 	const body = llmsTemplate

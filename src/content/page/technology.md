@@ -3,8 +3,6 @@ title: Technology
 description: How the transport works, and why it's secure.
 ---
 
-TeleCrypt.io runs on Matrix, an open standard for real-time communication.
-
 ## The protocol: Matrix
 
 TeleCrypt runs on Matrix, an open standard for real-time communication. A conversation lives in a "room" — a replicated, append-only graph of events (messages, membership, state). Clients send events to a homeserver; the homeserver orders them, persists them, and fans them out to the other participants.

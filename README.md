@@ -33,3 +33,8 @@ the repository's Pages custom domain as `www.telecrypt.io`.
 The apex domain, `telecrypt.io`, is intentionally separate: it provides Matrix discovery and
 redirects browser traffic to `www.telecrypt.io`. Matrix client, authentication, and control-plane
 APIs are served at `https://backend.telecrypt.io`; Matrix IDs remain `@user:telecrypt.io`.
+
+## License
+
+This inherited Astro Sienna site is licensed under [MIT](./LICENSE). The other TeleCrypt source
+repositories use BUSL-1.1; this repository remains the documented exception.
