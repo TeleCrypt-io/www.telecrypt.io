@@ -14,13 +14,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
 
       - uses: pnpm/setup@v2.0.2
         with:
           version: 11.19.0
           runtime: node@22.14.0
-          cache: true
-          cache-dependency-path: pnpm-lock.yaml
+          cache: false
           install: false
 
       - run: pnpm install --frozen-lockfile
