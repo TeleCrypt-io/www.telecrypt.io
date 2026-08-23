@@ -12,6 +12,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
         env:
@@ -30,7 +31,7 @@ jobs:
           cache: false
           install: false
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint
       # `build` starts with `astro check`, then produces the static artifact.
       - run: pnpm run build

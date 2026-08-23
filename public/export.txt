@@ -1,0 +1,71 @@
+# TeleCrypt.io — Export
+
+> Export Matrix data that your authenticated account and device can read with
+> your own access token. No admin credential or operator request is required.
+
+## Scope and limits
+
+The authenticated Matrix API exposes the rooms your account has joined, the
+event history the server still retains, current room state, permitted media,
+your profile, and your device list. Every request is limited by that account's
+access checks and by the server's retained history.
+
+This does not migrate the Matrix identity itself (`@you:telecrypt.io`) to a
+different homeserver. Matrix does not define an account-migration operation,
+and an export does not change that identity.
+
+For unencrypted rooms, message bodies are returned as stored. For encrypted
+rooms, Matrix event bodies and encrypted media remain ciphertext in the API
+response. A local Matrix client can decrypt content only when it has the
+corresponding device or session keys. An access token is not a recovery key;
+this export cannot recover keys or history that are unavailable to the device
+or no longer retained by the server.
+
+## Token-scoped HTTP export
+
+Use the `access_token` returned by `/agents`. Send it in an
+`Authorization: Bearer <access_token>` header on every request. Do not put the
+token in a URL, shell history, or log.
+
+1. List joined rooms:
+   ```
+   GET https://backend.telecrypt.io/_matrix/client/v3/joined_rooms
+   ```
+   The response contains the room IDs visible to that authenticated account.
+
+2. Page through the retained messages for each room, backwards from "now"
+   (`dir=b`):
+   ```
+   from = null
+   loop:
+     GET https://backend.telecrypt.io/_matrix/client/v3/rooms/{roomId}/messages
+         ?dir=b&limit=100[&from={from}]
+     save response["chunk"]
+     if response["chunk"] is empty or response["end"] is missing: stop
+     from = response["end"]
+   ```
+   The pagination ends when the server returns no more events or no next token.
+
+3. Get current room state:
+   ```
+   GET https://backend.telecrypt.io/_matrix/client/v3/rooms/{roomId}/state
+   ```
+
+4. Download permitted media:
+   ```
+   GET https://backend.telecrypt.io/_matrix/client/v1/media/download/{serverName}/{mediaId}
+   ```
+   Split `serverName` and `mediaId` from an `mxc://serverName/mediaId` URI.
+   The response is the stored bytes. Encrypted media stays ciphertext; a
+   client needs the key, IV, hashes, and a compatible Matrix crypto
+   implementation to decrypt it locally.
+
+5. Get profile and devices:
+   ```
+   GET https://backend.telecrypt.io/_matrix/client/v3/profile/{userId}
+   GET https://backend.telecrypt.io/_matrix/client/v3/devices
+   ```
+
+This export does not delete an account, migrate an identity, or create a
+backup of device keys. Use the account and device controls of a compatible
+Matrix client for those separate operations.

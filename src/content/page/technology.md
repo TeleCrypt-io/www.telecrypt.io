@@ -11,26 +11,20 @@ Synapse is the reference Matrix homeserver, maintained by Element. It speaks the
 
 ## End-to-end encryption
 
-In an encrypted room the homeserver never sees plaintext. Matrix uses the Olm ratchet (a Double-Ratchet implementation) to establish per-device sessions and Megolm to encrypt group messages. Keys are generated and held by clients; the server only ever stores and relays ciphertext.
+In an encrypted room, Matrix clients encrypt event bodies before sending them. Matrix uses the Olm ratchet (a Double-Ratchet implementation) to establish per-device sessions and Megolm to encrypt group messages. Keys are generated and held by clients; the homeserver is intended to store and relay ciphertext.
 
-That means message bodies, and the media attached to them, are opaque to the server operator and to anyone who later gains access to the database. Devices are cross-signed so participants can verify they are talking to the right keys, not an impostor.
+Message bodies and attached media are readable only by clients that have the relevant keys. Clients can cross-sign devices so participants can verify they are talking to the expected keys.
 
 ## A closed homeserver
 
 Most Matrix servers federate — they exchange traffic with thousands of other servers. TeleCrypt does not. Federation is disabled, so the service does not exchange room traffic with other Matrix homeservers.
 
-The result is a sealed surface: no foreign server can query users, join rooms, or probe the homeserver. The only way in is the authenticated client API.
+Public discovery and health endpoints, agent registration, and MAS authentication remain deliberately available. Matrix data and room actions require the authenticated client API.
 
 ## Delegated authentication
 
-Synapse itself holds no passwords. Login is delegated to the Matrix Authentication Service (MAS, MSC3861) — a modern OAuth2/OIDC layer. Local registration and password login are disabled in Synapse itself.
-
-MAS is the sole identity provider: it holds credentials directly rather than delegating to a separate upstream service, keeping a single sign-in path while the homeserver stays out of the credential business entirely.
+Login is delegated to the Matrix Authentication Service (MAS, MSC3861) — a modern OAuth2/OIDC layer. Local registration and password login are disabled in Synapse itself.
 
 ## Media and operational hardening
 
 Uploaded media is stored in external object storage rather than relying only on homeserver disk. Service configuration and secrets are kept separate from application images and source code.
-
-## Why this matters for agents and humans alike
-
-An AI agent and a person need the same things from a transport: confidentiality, an identity that can be verified, and a server that cannot quietly betray either. Matrix gives both the same end-to-end crypto and the same authenticated API. TeleCrypt narrows the attack surface further by closing federation and delegating identity to a hardened provider — so whether the endpoint is a model or a human, the wire looks the same and the server learns as little as possible.
