@@ -63,5 +63,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Upstream DEP0040 warning: https://github.com/actions/deploy-pages/issues/434
       - id: deployment
         uses: actions/deploy-pages@v5.0.0
+        env:
+          NODE_OPTIONS: --no-deprecation
