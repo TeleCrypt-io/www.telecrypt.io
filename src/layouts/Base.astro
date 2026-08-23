@@ -1,23 +1,25 @@
 ---
 import BaseHead from "@/components/BaseHead.astro";
-import SkipLink from "@/components/SkipLink.astro";
 import Footer from "@/components/layout/Footer.astro";
 import Header from "@/components/layout/Header.astro";
+import SkipLink from "@/components/SkipLink.astro";
 import { siteConfig } from "@/site-config";
-import type { SiteMeta } from "@/types";
 
 interface Props {
-	meta: SiteMeta;
+	meta: {
+		description?: string;
+		title: string;
+	};
 }
 
 const {
-	meta: { articleDate, description = siteConfig.description, ogImage, title },
+	meta: { description = siteConfig.description, title },
 } = Astro.props;
 ---
 
 <html class="scroll-smooth" lang={siteConfig.lang} data-theme="dark">
 	<head>
-		<BaseHead articleDate={articleDate} description={description} ogImage={ogImage} title={title} />
+		<BaseHead description={description} title={title} />
 	</head>
 	<body>
 		<SkipLink />
@@ -55,25 +57,29 @@ const {
 			a {
 				color: inherit;
 				text-decoration: none;
-				transition: color 0.2s ease, border-color 0.2s ease;
+				transition:
+					color 0.2s ease,
+					border-color 0.2s ease;
 			}
 
 			.wrap {
 				max-width: min(1280px, 94vw);
 				margin: 0 auto;
-				padding: 36px max(32px, env(safe-area-inset-right))
-					max(80px, env(safe-area-inset-bottom)) max(32px, env(safe-area-inset-left));
+				padding: 36px max(32px, env(safe-area-inset-right)) max(80px, env(safe-area-inset-bottom))
+					max(32px, env(safe-area-inset-left));
 				min-height: 100vh;
 				min-height: 100dvh;
 				display: flex;
 				flex-direction: column;
 			}
-			.wrap > main { flex: 1 0 auto; }
+			.wrap > main {
+				flex: 1 0 auto;
+			}
 
 			@media (max-width: 720px) {
 				.wrap {
-					padding: 18px max(22px, env(safe-area-inset-right))
-						max(56px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+					padding: 18px max(22px, env(safe-area-inset-right)) max(56px, env(safe-area-inset-bottom))
+						max(22px, env(safe-area-inset-left));
 				}
 				body {
 					font-size: 17px;
@@ -82,8 +88,8 @@ const {
 
 			@media (max-width: 420px) {
 				.wrap {
-					padding: 14px max(16px, env(safe-area-inset-right))
-						max(44px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+					padding: 14px max(16px, env(safe-area-inset-right)) max(44px, env(safe-area-inset-bottom))
+						max(16px, env(safe-area-inset-left));
 				}
 				body {
 					font-size: 16.5px;

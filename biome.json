@@ -27,11 +27,6 @@
 			}
 		}
 	},
-	"css": {
-		"parser": {
-			"tailwindDirectives": true
-		}
-	},
 	"javascript": {
 		"formatter": {
 			"trailingCommas": "all",

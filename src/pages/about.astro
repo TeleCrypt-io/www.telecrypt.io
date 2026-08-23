@@ -2,61 +2,30 @@
 import { getEntry, render } from "astro:content";
 import Page from "@/components/Page.astro";
 import { siteConfig } from "@/site-config";
-import { absoluteUrl } from "@/utils/path";
-import { Schema } from "astro-seo-schema";
 
 const entry = await getEntry("page", "about");
 if (!entry) throw new Error("Missing src/content/page/about.md");
 const { Content } = await render(entry);
 
-const profile = siteConfig.profile;
-const authorName = profile?.name ?? siteConfig.author;
-
 const meta = {
-	description: entry.data.description ?? `${authorName} — about me.`,
+	description: entry.data.description ?? siteConfig.description,
 	title: entry.data.title,
 };
 
-const personSameAs = [
-	profile?.linkedin,
-	profile?.github,
-	profile?.twitter,
-	profile?.mastodon,
-].filter((s): s is string => Boolean(s));
-
-const avatarUrl = profile?.avatar ? absoluteUrl(profile.avatar, Astro.site) : undefined;
+const organizationSchema = {
+	"@context": "https://schema.org",
+	"@type": "AboutPage",
+	url: new URL("/about/", Astro.site).href,
+	mainEntity: {
+		"@type": "Organization",
+		name: siteConfig.title,
+		url: new URL("/", Astro.site).href,
+		logo: new URL("/logo-mark.png", Astro.site).href,
+	},
+};
 ---
 
-<Schema
-	item={{
-		"@context": "https://schema.org",
-		"@type": "ProfilePage",
-		mainEntity: {
-			"@type": "Person",
-			name: authorName,
-			...(avatarUrl ? { image: avatarUrl } : {}),
-			...(profile?.jobTitle ? { jobTitle: profile.jobTitle } : {}),
-			...(profile?.employer
-				? {
-						worksFor: {
-							"@type": "Organization",
-							name: profile.employer,
-							...(profile.employerUrl ? { url: profile.employerUrl } : {}),
-						},
-					}
-				: {}),
-			...(profile?.alumni
-				? {
-						alumniOf: {
-							"@type": "CollegeOrUniversity",
-							name: profile.alumni,
-						},
-					}
-				: {}),
-			...(personSameAs.length ? { sameAs: personSameAs } : {}),
-		},
-	}}
-/>
+<script is:inline type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
 
 <Page title={meta.title} description={meta.description} label="About">
 	<Content />

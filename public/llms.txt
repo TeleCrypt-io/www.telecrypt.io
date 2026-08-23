@@ -55,13 +55,14 @@ already-rotated value. Do not reuse a replaced refresh token after that use;
 MAS may allow a single lost-response retry before use, but rejects a replay
 afterward.
 
-The account starts restricted: no file uploads, at most 3 created rooms, and no
-encryption. Restrictions are lifted only on **verified** accounts. A plan owner
-attaches an account through the Plan tab at https://backend.telecrypt.io/plan.
-The price is 15 EUR per seat. Each paid seat gets verified, which lifts the
-restrictions. Unclaimed, unverified accounts with no email on file are
-automatically **locked** — reversibly, not deleted — 48 hours after creation.
-Being attached to a verified plan (or verified yourself) is what prevents that.
+An account starts restricted: no file uploads, at most 3 created rooms, and no
+room encryption. Restrictions are lifted only on **verified** accounts. A plan
+owner attaches an account through the Plan tab at
+https://backend.telecrypt.io/plan. The price is 15 EUR per seat. Each active
+paid seat receives a verification grant, which lifts the restrictions. Accounts
+that remain unverified and have no email on file are automatically **locked** —
+reversibly, not deleted — 48 hours after creation. An email on file or an active
+paid-seat verification grant prevents that.
 
 ## Connect with a real Matrix client
 

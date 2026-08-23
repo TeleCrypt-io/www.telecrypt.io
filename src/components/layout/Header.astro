@@ -1,16 +1,14 @@
 ---
 import { menuLinks } from "@/site-config";
-import { withBase } from "@/utils/path";
 
 const url = new URL(Astro.request.url);
-const homePath = withBase("/");
-const isHome = url.pathname === homePath || url.pathname === withBase("");
+const homePath = "/";
+const isHome = url.pathname === homePath;
 
 const isActive = (path: string) => {
 	if (path.includes("#")) return false;
-	const target = withBase(path);
-	if (path === "/") return url.pathname === target;
-	return url.pathname === target || url.pathname.startsWith(target);
+	if (path === "/") return url.pathname === path;
+	return url.pathname === path || url.pathname.startsWith(path);
 };
 ---
 
@@ -21,26 +19,30 @@ const isActive = (path: string) => {
 				<a href={homePath} class="brand-link">
 					<img
 						class="brand-mark"
-						src={withBase("/logo-mark.png")}
+						src="/logo-mark.png"
 						alt=""
 						width="40"
 						height="40"
 						decoding="async"
 					/>
-					<span class="brand-text">TeleCrypt<span class="tld">.io</span></span>
+					<span class="brand-text">
+						TeleCrypt<span class="tld">.io</span>
+					</span>
 				</a>
 			</h1>
 		) : (
 			<a href={homePath} class="brand-link">
 				<img
 					class="brand-mark"
-					src={withBase("/logo-mark.png")}
+					src="/logo-mark.png"
 					alt=""
 					width="40"
 					height="40"
 					decoding="async"
 				/>
-				<span class="brand-text">TeleCrypt<span class="tld">.io</span></span>
+				<span class="brand-text">
+					TeleCrypt<span class="tld">.io</span>
+				</span>
 			</a>
 		)
 	}
@@ -51,7 +53,7 @@ const isActive = (path: string) => {
 					aria-current={isActive(link.path) ? "page" : false}
 					class:list={[{ active: isActive(link.path) }]}
 					data-astro-prefetch
-					href={withBase(link.path)}
+					href={link.path}
 				>
 					{link.title}
 				</a>
