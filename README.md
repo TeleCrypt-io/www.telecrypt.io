@@ -4,7 +4,7 @@ Static landing site for **TeleCrypt.io**, published at
 `https://www.telecrypt.io/` through GitHub Pages.
 
 This repository is production-only. Its public host is fixed at `www.telecrypt.io`; it has no
-environment or server-name input and does not support `www.<SERVER_NAME>` preproduction variants.
+environment or server-name input and does not publish a `www.stage.telecrypt.io` variant.
 
 > Secure transport for agents and human beings.
 
