@@ -141,9 +141,10 @@ jobs:
           printf 'artifact_size=%s\nartifact_digest=sha256:%s\n' "$size" "$(sha256sum "$d/$archive" | awk '{print $1}')" >>"$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7.0.1
         with:
-          name: www-release-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          name: www-release-${{ github.run_id }}-${{ github.sha }}
           path: ${{ runner.temp }}/www-release/${{ github.ref_name }}.tar.gz
           if-no-files-found: error
+          overwrite: true
           retention-days: 7
 
   release:
@@ -163,7 +164,7 @@ jobs:
         with: {fetch-depth: 0, persist-credentials: false}
       - uses: actions/download-artifact@v8.0.1
         with:
-          name: www-release-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          name: www-release-${{ github.run_id }}-${{ github.sha }}
           path: release
       - name: Create or reuse the exact draft Release
         id: publish
@@ -254,11 +255,11 @@ jobs:
             asset_id="$(jq -er '.assets[0].id | select(type=="number" and .>0 and floor==.)' "$json")"
             error="$output.err"
             set +e
-            python3 scripts/bounded-command.py --stdout "$output.stdout" --stderr "$error" --max-stdout-bytes 131072 --max-stderr-bytes 131072 --timeout-seconds 120 --kill-after-seconds 5 -- gh api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Accept: application/octet-stream' --output "$output" "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
+            python3 scripts/bounded-command.py --stdout "$output" --stderr "$error" --max-stdout-bytes "$MAX_ASSET_BYTES" --max-stderr-bytes 131072 --timeout-seconds 120 --kill-after-seconds 5 -- gh api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Accept: application/octet-stream' "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
             status="$?"
             set -e
             test "$status" = 0
-            test "$(wc -c <"$error")" -le 131072 -a ! -s "$error" -a ! -s "$output.stdout"
+            test "$(wc -c <"$error")" -le 131072 -a ! -s "$error"
             test "$(wc -c <"$output")" = "$EXPECTED_SIZE"
             test "sha256:$(sha256sum "$output" | awk '{print $1}')" = "$EXPECTED_DIGEST"
             cmp -s "$archive" "$output"
@@ -304,7 +305,10 @@ jobs:
                 fi
               done <"$asset_ids"
               verify_source
-              bounded_gh "$RUNNER_TEMP/upload.json" api --hostname github.com --method POST --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Content-Type: application/gzip' --input "$archive" "/repos/$GITHUB_REPOSITORY/releases/$release_id/assets?name=$asset_name"
+              upload_url="$(jq -er '.upload_url | select(type=="string" and test("^https://uploads\\.github\\.com/repos/[^/]+/[^/]+/releases/[0-9]+/assets\\{\\?name,label\\}$"))' "$probe")"
+              upload_url="${upload_url%\{*}"
+              test "$upload_url" = "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$release_id/assets"
+              bounded_gh "$RUNNER_TEMP/upload.json" api --hostname github.com --method POST --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Accept: application/vnd.github+json' --header 'Content-Type: application/gzip' --input "$archive" "$upload_url?name=$asset_name"
               bounded_gh "$probe" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$release_id"
               verify_draft "$probe" "$release_id"
               python3 scripts/verify-release.py --json "$probe" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$archive" --expected-release-id "$release_id" >/dev/null
@@ -364,11 +368,11 @@ jobs:
           asset_id="$(jq -er '.asset_id | select(type=="number" and .>0 and floor==.)' <<<"$info")"
           downloaded="$RUNNER_TEMP/$archive"
           set +e
-          python3 scripts/bounded-command.py --stdout "$downloaded.stdout" --stderr "$downloaded.err" --max-stdout-bytes 131072 --max-stderr-bytes 131072 --timeout-seconds 120 --kill-after-seconds 5 -- gh api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Accept: application/octet-stream' --output "$downloaded" "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
+          python3 scripts/bounded-command.py --stdout "$downloaded" --stderr "$downloaded.err" --max-stdout-bytes "$MAX_ASSET_BYTES" --max-stderr-bytes 131072 --timeout-seconds 120 --kill-after-seconds 5 -- gh api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Accept: application/octet-stream' "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
           status="$?"
           set -e
           test "$status" = 0
-          test "$(wc -c <"$downloaded.err")" -le 131072 -a ! -s "$downloaded.err" -a ! -s "$downloaded.stdout"
+          test "$(wc -c <"$downloaded.err")" -le 131072 -a ! -s "$downloaded.err"
           test "$(wc -c <"$downloaded")" = "$EXPECTED_SIZE"
           test "sha256:$(sha256sum "$downloaded" | awk '{print $1}')" = "$EXPECTED_DIGEST"
           python3 scripts/verify-release.py --json "$json" --tag "$RELEASE_TAG" --asset-name "$archive" --expected-target-commit "$RELEASE_SHA" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$downloaded" --expected-release-id "$EXPECTED_RELEASE_ID" >/dev/null

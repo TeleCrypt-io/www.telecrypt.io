@@ -213,6 +213,14 @@ def check_workflow() -> None:
     ):
         if fragment not in release_shell:
             raise ContractError(f"release state machine is missing {fragment}")
+    if "github.run_attempt" in WORKFLOW:
+        raise ContractError("artifact names vary across reruns")
+    if "name: www-release-${{ github.run_id }}-${{ github.sha }}" not in WORKFLOW or "overwrite: true" not in WORKFLOW:
+        raise ContractError("website artifact reruns are not stable and overwritable")
+    if "--output" in WORKFLOW:
+        raise ContractError("binary downloads still use unsupported gh api --output")
+    if "upload_url" not in release_shell or "uploads.github.com" not in release_shell or '"$upload_url?name=$asset_name"' not in release_shell:
+        raise ContractError("Release asset upload does not use the authoritative uploads.github.com URL")
     if release_shell.index("--method POST") > release_shell.index("--method DELETE") or release_shell.index("--method DELETE") > release_shell.index("--input \"$archive\"") or release_shell.index("--input \"$archive\"") > release_shell.index("--method PATCH"):
         raise ContractError("draft lifecycle operations are out of order")
     for fragment in ("GIT_CONFIG_NOSYSTEM", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS", "GIT_NO_REPLACE_OBJECTS", "GIT_ASKPASS", "SSH_ASKPASS", "GIT_ALLOW_PROTOCOL", "GH_HOST: github.com", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
