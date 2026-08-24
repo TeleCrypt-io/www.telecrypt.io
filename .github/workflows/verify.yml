@@ -86,7 +86,12 @@ jobs:
             status="$?"
             set -e
             test "$(wc -c <"$output")" -le 1048576 -a "$(wc -c <"$error")" -le 524288
-            test "$status" = 0
+            if [ "$status" -ne 0 ]; then
+              printf 'bounded command failed (status=%s): %s\n' "$status" "$*" >&2
+              sed -n '1,200p' "$output" >&2
+              sed -n '1,200p' "$error" >&2
+              return "$status"
+            fi
             test ! -s "$error"
             ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
