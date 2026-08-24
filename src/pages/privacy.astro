@@ -1,15 +1,8 @@
 ---
-import { getEntry, render } from "astro:content";
 import Page from "@/components/Page.astro";
+import { loadPage } from "@/utils/content-page";
 
-const entry = await getEntry("page", "privacy");
-if (!entry) throw new Error("Missing src/content/page/privacy.md");
-const { Content } = await render(entry);
-
-const meta = {
-	description: entry.data.description ?? "What we collect, why, and who can see it.",
-	title: entry.data.title,
-};
+const { Content, meta } = await loadPage("privacy", "What we collect, why, and who can see it.");
 ---
 
 <Page title={meta.title} description={meta.description} label="Privacy">

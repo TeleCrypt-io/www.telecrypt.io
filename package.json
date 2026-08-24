@@ -1,11 +1,14 @@
 {
 	"name": "@telecrypt-io/www",
-	"version": "0.5.10",
+	"version": "0.5.11",
 	"description": "TeleCrypt.io public landing site and documentation.",
 	"license": "MIT",
 	"private": true,
 	"type": "module",
-	"packageManager": "pnpm@11.19.0",
+	"packageManager": "pnpm@11.22.0",
+	"engines": {
+		"node": "22.23.2"
+	},
 	"scripts": {
 		"dev": "astro dev",
 		"build": "astro check && astro build",

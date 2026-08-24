@@ -1,17 +1,9 @@
 ---
-import { getEntry, render } from "astro:content";
 import Page from "@/components/Page.astro";
 import { siteConfig } from "@/site-config";
+import { loadPage } from "@/utils/content-page";
 
-const entry = await getEntry("page", "about");
-if (!entry) throw new Error("Missing src/content/page/about.md");
-const { Content } = await render(entry);
-
-const meta = {
-	description: entry.data.description ?? siteConfig.description,
-	title: entry.data.title,
-};
-
+const { Content, meta } = await loadPage("about");
 const organizationSchema = {
 	"@context": "https://schema.org",
 	"@type": "AboutPage",
@@ -25,8 +17,11 @@ const organizationSchema = {
 };
 ---
 
-<script is:inline type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
-
-<Page title={meta.title} description={meta.description} label="About">
+<Page
+	title={meta.title}
+	description={meta.description}
+	label="About"
+	structuredData={organizationSchema}
+>
 	<Content />
 </Page>

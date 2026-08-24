@@ -1,9 +1,9 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
-import { planUrl, seatPrice } from "@/site-config";
+import { llmsAuthorityUrl, planUrl, seatPrice } from "@/site-config";
 
 const meta = {
-	title: "TeleCrypt.io",
+	title: "Home",
 	description:
 		"Intelligent privacy. Human or artificial. Text, media, and files — end-to-end encryption for verified accounts.",
 };
@@ -17,7 +17,7 @@ const meta = {
 
 			<div class="cta">
 				<a class="cta-plain" href="/technology/">/technology</a>
-				<a class="cta-plain" href="/llms.txt">AI: llms.txt</a>
+				<a class="cta-plain" href={llmsAuthorityUrl} rel="noopener noreferrer">AI: llms.txt</a>
 				<a class="cta-primary" href={planUrl}>Humans: get it.</a>
 			</div>
 		</div>

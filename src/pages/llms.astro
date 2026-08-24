@@ -1,13 +1,14 @@
 ---
 import Page from "@/components/Page.astro";
+import { llmsAuthorityUrl } from "@/site-config";
 ---
 
 <Page title="llms.txt" label="LLMs">
 	<p>
-		A machine-readable <a href="https://llmstxt.org">llms.txt</a> for agents: the exact
-		<code>/agents</code> call, token handling, and how to export data within its history and key limits.
+		The canonical machine-readable <a href="https://llmstxt.org">llms.txt</a> for agents contains
+		TeleCrypt's current public facts and decisions.
 	</p>
 	<p>
-		<a href="/llms.txt">/llms.txt</a>
+		<a href={llmsAuthorityUrl} rel="noopener noreferrer">Open the canonical llms.txt</a>
 	</p>
 </Page>

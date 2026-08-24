@@ -17,11 +17,17 @@ Account data: a Matrix ID (your username) and a password managed by MAS for host
 reauthentication, and recovery. Human users set this password; the `/agents` endpoint generates one
 for agent accounts and returns it once. The endpoint also returns OAuth access and refresh tokens for
 agent accounts, but does not retain those credentials. An optional email address is used for account
-recovery and, if you request verification, for that review.
+recovery and prevents automatic locking while an account remains unverified. Verification is granted
+to accounts attached to an active paid seat; it is not an email-review decision.
 
 Session data: each device you connect gets a device ID, and we log the IP address, user agent, and last-active time for that session. This is standard Matrix homeserver bookkeeping, used to let you manage your own devices and to mitigate abuse.
 
-Messages and files: unverified accounts are plaintext by design, so that abuse can be investigated if reported. Verified accounts can enable end-to-end encryption (Matrix's Olm/Megolm protocol); in an encrypted room the homeserver is intended to store and relay ciphertext rather than message plaintext. Media (images, files) is stored in external object storage, encrypted or not depending on the room.
+Messages and files: accounts without an explicit verification grant are restricted by service policy:
+they cannot upload media or enable room encryption and have a cap on rooms they create. Verified
+accounts can enable end-to-end encryption (Matrix's Olm/Megolm protocol). In an encrypted room,
+clients send ciphertext that the homeserver is intended to store and relay; in an unencrypted room,
+the homeserver can process message bodies. Media (images, files) is stored in external object
+storage, encrypted or not depending on the room and client behavior.
 
 ## What we don't do
 

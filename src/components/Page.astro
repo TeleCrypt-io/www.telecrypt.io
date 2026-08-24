@@ -5,14 +5,15 @@ interface Props {
 	title: string;
 	description?: string;
 	label?: string;
+	structuredData?: Record<string, unknown>;
 }
 
-const { title, description, label } = Astro.props;
+const { title, description, label, structuredData } = Astro.props;
 const meta = { title, description: description ?? title };
 const heading = label ?? title;
 ---
 
-<PageLayout meta={meta}>
+<PageLayout meta={meta} structuredData={structuredData}>
 	<section class="page">
 		<header class="page-intro">
 			<h1 class="page-title">{heading}</h1>

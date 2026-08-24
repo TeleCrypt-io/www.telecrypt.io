@@ -13,10 +13,28 @@ const titleSeparator = "|";
 const siteTitle = `${title} ${titleSeparator} ${siteConfig.title}`;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const socialImageURL = new URL("/social-card.png", Astro.site);
+const contentSecurityPolicy = [
+	"default-src 'none'",
+	"base-uri 'none'",
+	"connect-src 'self'",
+	"font-src 'self' data:",
+	"form-action 'self'",
+	"frame-src 'none'",
+	"img-src 'self'",
+	"manifest-src 'self'",
+	"media-src 'none'",
+	"object-src 'none'",
+	"script-src 'self'",
+	"style-src 'self' 'unsafe-inline'",
+	"worker-src 'none'",
+].join("; ");
 ---
 
 <meta charset="utf-8" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+<meta content={contentSecurityPolicy} http-equiv="Content-Security-Policy" />
+<meta content="strict-origin-when-cross-origin" name="referrer" />
+<meta content="dark" name="color-scheme" />
 <title>{siteTitle}</title>
 
 <link href="/favicon.ico" rel="icon" sizes="any" />
@@ -44,11 +62,11 @@ const socialImageURL = new URL("/social-card.png", Astro.site);
 <meta content={socialImageURL.href} property="og:image" />
 <meta content="1200" property="og:image:width" />
 <meta content="630" property="og:image:height" />
-<meta content="summary_large_image" property="twitter:card" />
-<meta content={canonicalURL} property="twitter:url" />
-<meta content={title} property="twitter:title" />
-<meta content={description} property="twitter:description" />
-<meta content={socialImageURL.href} property="twitter:image" />
+<meta content="summary_large_image" name="twitter:card" />
+<meta content={canonicalURL} name="twitter:url" />
+<meta content={title} name="twitter:title" />
+<meta content={description} name="twitter:description" />
+<meta content={socialImageURL.href} name="twitter:image" />
 
 <link href="/sitemap-index.xml" rel="sitemap" />
 

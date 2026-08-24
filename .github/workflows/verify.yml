@@ -13,25 +13,87 @@ jobs:
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      GIT_CONFIG_NOSYSTEM: "1"
+      GIT_CONFIG_SYSTEM: /dev/null
+      GIT_CONFIG_GLOBAL: /dev/null
+      GIT_CONFIG_COUNT: 0
+      GIT_CONFIG_PARAMETERS: ""
+      GIT_NO_REPLACE_OBJECTS: "1"
+      GIT_ASKPASS: /bin/false
+      SSH_ASKPASS: /bin/false
+      GIT_ALLOW_PROTOCOL: https
+      GIT_PROTOCOL_FROM_USER: "0"
+      GH_HOST: github.com
+      http_proxy: ""
+      https_proxy: ""
+      all_proxy: ""
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      NO_PROXY: ""
     steps:
       - uses: actions/checkout@v7.0.1
-        env:
-          GIT_CONFIG_COUNT: 2
-          GIT_CONFIG_KEY_0: init.defaultBranch
-          GIT_CONFIG_VALUE_0: main
-          GIT_CONFIG_KEY_1: advice.detachedHead
-          GIT_CONFIG_VALUE_1: "false"
         with:
+          fetch-depth: 0
           persist-credentials: false
 
+      - name: Verify the single-workflow release promotion contract
+        run: python3 scripts/test-release-contract.py
+
+      - name: Verify the archive and generated-site validators
+        run: |
+          python3 -m py_compile scripts/validate-pages-artifact.py scripts/validate-generated-site.py scripts/verify-release.py scripts/test-release-validators.py
+          python3 scripts/test-release-validators.py
+
+      - name: Verify strict static CSP sources
+        run: |
+          set -euo pipefail
+          test ! -e .github/workflows/build.yml
+          if rg -n '<script' src --glob '*.astro' --glob '*.ts' --glob '*.tsx' --glob '*.js'; then
+            echo 'inline script remains in source' >&2
+            exit 1
+          fi
+          if rg -n 'prefetch|data-astro-prefetch|frame-ancestors|script-src .unsafe-inline.' \
+            astro.config.ts src/components/layout/Header.astro src/components/BaseHead.astro; then
+            echo 'forbidden client or framing policy remains in source' >&2
+            exit 1
+          fi
+
       - uses: pnpm/setup@v2.0.2
+        timeout-minutes: 10
         with:
-          version: 11.19.0
+          version: 11.22.0
           runtime: node@22.23.2
           cache: false
           install: false
 
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: pnpm run lint
-      # `build` starts with `astro check`, then produces the static artifact.
-      - run: pnpm run build
+      - name: Verify exact Node.js and pnpm toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = v22.23.2
+          test "$(pnpm --version)" = 11.22.0
+
+      - name: Install, lint, and build with bounded diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          bounded_command() {
+            local output="$1" seconds="$2" status error
+            shift 2
+            error="$output.err"
+            set +e
+            python3 scripts/bounded-command.py --stdout "$output" --stderr "$error" --max-stdout-bytes 1048576 --max-stderr-bytes 524288 --timeout-seconds "$seconds" --kill-after-seconds 5 -- "$@"
+            status="$?"
+            set -e
+            test "$(wc -c <"$output")" -le 1048576 -a "$(wc -c <"$error")" -le 524288
+            test "$status" = 0
+            test ! -s "$error"
+            ! rg -qi '\bwarn(ing)?\b' "$output" "$error"
+          }
+          bounded_command "$RUNNER_TEMP/pnpm-install.out" 600 pnpm --reporter=append-only install --frozen-lockfile --ignore-scripts
+          bounded_command "$RUNNER_TEMP/pnpm-lint.out" 300 pnpm --reporter=append-only run lint
+          # `build` starts with `astro check`, then produces the static artifact.
+          bounded_command "$RUNNER_TEMP/pnpm-build.out" 600 pnpm --reporter=append-only run build
+          PYTHONDONTWRITEBYTECODE=1 python3 scripts/test-bounded-command.py

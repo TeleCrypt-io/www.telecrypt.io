@@ -1,15 +1,11 @@
 ---
-import { getEntry, render } from "astro:content";
 import Page from "@/components/Page.astro";
+import { loadPage } from "@/utils/content-page";
 
-const entry = await getEntry("page", "technology");
-if (!entry) throw new Error("Missing src/content/page/technology.md");
-const { Content } = await render(entry);
-
-const meta = {
-	description: entry.data.description ?? "How the transport works, and why it's secure.",
-	title: entry.data.title,
-};
+const { Content, meta } = await loadPage(
+	"technology",
+	"How the transport works, and why it's secure.",
+);
 ---
 
 <Page title={meta.title} description={meta.description} label="Technology">

@@ -1,4 +1,4 @@
-# build output — produced by the tagged-release Pages workflow (see .github/workflows/build.yml)
+# build output — produced by the tagged-release Pages workflow (see .github/workflows/release.yml)
 dist/
 .output/
 
@@ -10,6 +10,8 @@ node_modules/
 
 # misc
 .DS_Store
+__pycache__/
+*.py[cod]
 *.log
 .env
 .env.*

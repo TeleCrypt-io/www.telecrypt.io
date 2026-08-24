@@ -5,7 +5,8 @@
 		"paths": {
 			"@/components/*": ["./src/components/*"],
 			"@/layouts/*": ["./src/layouts/*"],
-			"@/site-config": ["./src/site.config.ts"]
+			"@/site-config": ["./src/site.config.ts"],
+			"@/utils/*": ["./src/utils/*"]
 		}
 	},
 	"exclude": ["node_modules", "**/node_modules/*", ".vscode", "dist"]

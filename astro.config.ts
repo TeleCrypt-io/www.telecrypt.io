@@ -2,9 +2,10 @@ import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 import rehypeExternalLinks from "rehype-external-links";
+import { siteUrl } from "./src/site.config";
 
 export default defineConfig({
-	site: "https://www.telecrypt.io",
+	site: siteUrl,
 	output: "static",
 	compressHTML: true,
 	build: {
@@ -24,6 +25,4 @@ export default defineConfig({
 			],
 		}),
 	},
-	// https://docs.astro.build/en/guides/prefetch/
-	prefetch: true,
 });

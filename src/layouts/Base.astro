@@ -10,16 +10,26 @@ interface Props {
 		description?: string;
 		title: string;
 	};
+	structuredData?: Record<string, unknown>;
 }
 
 const {
 	meta: { description = siteConfig.description, title },
+	structuredData,
 } = Astro.props;
+const structuredDataJson = structuredData
+	? JSON.stringify(structuredData).replaceAll("<", "\\u003c")
+	: undefined;
 ---
 
 <html lang={siteConfig.lang} data-theme="dark">
 	<head>
 		<BaseHead description={description} title={title} />
+		{
+			structuredDataJson && (
+				<script is:inline type="application/ld+json" set:html={structuredDataJson} />
+			)
+		}
 	</head>
 	<body>
 		<SkipLink />

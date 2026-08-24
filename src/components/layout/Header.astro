@@ -52,7 +52,6 @@ const isActive = (path: string) => {
 				<a
 					aria-current={isActive(link.path) ? "page" : false}
 					class:list={[{ active: isActive(link.path) }]}
-					data-astro-prefetch
 					href={link.path}
 				>
 					{link.title}
