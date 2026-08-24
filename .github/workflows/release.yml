@@ -104,7 +104,7 @@ jobs:
             test "$(wc -c <"$output")" -le 1048576 -a "$(wc -c <"$error")" -le 524288
             test "$status" = 0
             test ! -s "$error"
-            ! rg -qi '\bwarn(ing)?\b' "$output" "$error"
+            ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
           bounded_command "$RUNNER_TEMP/pnpm-install.out" 600 pnpm --reporter=append-only install --frozen-lockfile --ignore-scripts
           bounded_command "$RUNNER_TEMP/pnpm-lint.out" 300 pnpm --reporter=append-only run lint
@@ -126,7 +126,7 @@ jobs:
             test "$(wc -c <"$output")" -le 65536 -a "$(wc -c <"$error")" -le 65536
             test "$status" = 0
             test ! -s "$error"
-            ! rg -qi '\bwarn(ing)?\b' "$output" "$error"
+            ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
           d="$RUNNER_TEMP/www-release"
           mkdir -p "$d"
@@ -234,7 +234,7 @@ jobs:
             test "$(wc -c <"$output")" -le 65536 -a "$(wc -c <"$error")" -le 65536
             test "$status" = 0
             test ! -s "$error"
-            ! rg -qi '\bwarn(ing)?\b' "$output" "$error"
+            ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
           verify_draft() {
             python3 scripts/verify-release.py --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$2" >/dev/null
@@ -383,7 +383,7 @@ jobs:
             test "$(wc -c <"$output")" -le 65536 -a "$(wc -c <"$error")" -le 65536
             test "$status" = 0
             test ! -s "$error"
-            ! rg -qi '\bwarn(ing)?\b' "$output" "$error"
+            ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
           mkdir dist
           bounded_local "$RUNNER_TEMP/www-archive-extract.out" 300 tar --extract --gzip --file "$downloaded" --directory dist --no-overwrite-dir --no-same-owner --no-same-permissions

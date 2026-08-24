@@ -47,11 +47,11 @@ jobs:
         run: |
           set -euo pipefail
           test ! -e .github/workflows/build.yml
-          if rg -n '<script' src --glob '*.astro' --glob '*.ts' --glob '*.tsx' --glob '*.js'; then
+          if grep -R -n -E '<script' src --include='*.astro' --include='*.ts' --include='*.tsx' --include='*.js'; then
             echo 'inline script remains in source' >&2
             exit 1
           fi
-          if rg -n 'prefetch|data-astro-prefetch|frame-ancestors|script-src .unsafe-inline.' \
+          if grep -R -n -E 'prefetch|data-astro-prefetch|frame-ancestors|script-src .unsafe-inline.' \
             astro.config.ts src/components/layout/Header.astro src/components/BaseHead.astro; then
             echo 'forbidden client or framing policy remains in source' >&2
             exit 1
@@ -87,7 +87,7 @@ jobs:
             test "$(wc -c <"$output")" -le 1048576 -a "$(wc -c <"$error")" -le 524288
             test "$status" = 0
             test ! -s "$error"
-            ! rg -qi '\bwarn(ing)?\b' "$output" "$error"
+            ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
           bounded_command "$RUNNER_TEMP/pnpm-install.out" 600 pnpm --reporter=append-only install --frozen-lockfile --ignore-scripts
           bounded_command "$RUNNER_TEMP/pnpm-lint.out" 300 pnpm --reporter=append-only run lint
