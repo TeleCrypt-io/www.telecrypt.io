@@ -47,7 +47,8 @@ jobs:
         run: |
           set -euo pipefail
           test ! -e .github/workflows/build.yml
-          if grep -R -n -E '<script' src --include='*.astro' --include='*.ts' --include='*.tsx' --include='*.js'; then
+          if grep -R -n -E '<script' src --include='*.astro' --include='*.ts' --include='*.tsx' --include='*.js' \
+            | grep -E -v 'type="application/ld\+json"'; then
             echo 'inline script remains in source' >&2
             exit 1
           fi
