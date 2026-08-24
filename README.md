@@ -13,9 +13,9 @@ Built with [Astro](https://astro.build) and published as a fully static build.
 ## Content
 
 The site contains the landing page, pricing, technology, About, support, privacy, and export pages.
-The canonical machine-readable `llms.txt` is maintained in
-[`llms-authority`](https://github.com/TeleCrypt-io/llms-authority) and served from its GitHub Pages
-URL. This site links to that authority rather than copying it. `export.txt` is served verbatim, and
+The canonical machine-readable [`llms.txt`](https://telecrypt-io.github.io/llms-authority/llms.txt)
+is maintained in the `llms-authority` repository and served from that exact GitHub Pages URL. This
+site links to that authority rather than copying it. `export.txt` is served verbatim, and
 `privacy.txt` is generated from the same source as the privacy page.
 
 ## Develop

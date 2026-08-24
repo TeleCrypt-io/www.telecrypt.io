@@ -21,6 +21,7 @@ SITE_CONFIG = (ROOT / "src/site.config.ts").read_text(encoding="utf-8")
 ASTRO_CONFIG = (ROOT / "astro.config.ts").read_text(encoding="utf-8")
 LLMS_PAGE = (ROOT / "src/pages/llms.astro").read_text(encoding="utf-8")
 ABOUT_TEXT = (ROOT / "src/content/page/about.md").read_text(encoding="utf-8")
+README_TEXT = (ROOT / "README.md").read_text(encoding="utf-8")
 PACKAGE = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
 
 
@@ -245,9 +246,17 @@ def check_site_contract() -> None:
     authority_url = "https://telecrypt-io.github.io/llms-authority/llms.txt"
     if not re.search(rf"(?m)^\s*export\s+const\s+llmsAuthorityUrl\s*=\s*(['\"])" + re.escape(authority_url) + r"\1\s*;", SITE_CONFIG):
         raise ContractError("llms authority URL is not an explicit Pages constant")
-    if (ROOT / "src/content/llms.txt").exists() or (ROOT / "src/pages/llms.txt.ts").exists():
+    forbidden_authority_sources = (
+        ROOT / "public/llms.txt",
+        ROOT / "src/content/llms.txt",
+        ROOT / "src/pages/llms.txt.ts",
+        ROOT / "src/pages/llms.txt.astro",
+    )
+    if any(path.exists() for path in forbidden_authority_sources):
         raise ContractError("website retains an embedded llms.txt source or route")
-    if "llmsAuthorityUrl" not in LLMS_PAGE or authority_url not in ABOUT_TEXT:
+    if "llmsAuthorityUrl" not in LLMS_PAGE or "llmsAuthorityUrl" not in FOOTER or "llmsAuthorityUrl" not in INDEX_PAGE:
+        raise ContractError("site's rendered llms links do not use the canonical authority constant")
+    if authority_url not in ABOUT_TEXT or authority_url not in README_TEXT:
         raise ContractError("site's llms links do not target the canonical Pages authority")
     if not re.search(r"(?m)^\s*site\s*:\s*siteUrl\s*,", ASTRO_CONFIG):
         raise ContractError("Astro is not bound to the production site constant")
