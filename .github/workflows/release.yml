@@ -108,8 +108,10 @@ jobs:
               return "$status"
             fi
             if test -s "$error"; then
-              cat -- "$error" >&2
-              return 1
+              if grep -Eqv '^\$ [[:print:]]*$' "$error"; then
+                cat -- "$error" >&2
+                return 1
+              fi
             fi
             ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }

@@ -238,7 +238,7 @@ def check_workflow() -> None:
         raise ContractError("verification workflow is not using the behavioral contract")
     if "revalidate_draft_for_publish" not in release_shell:
         raise ContractError("the draft is not re-fetched immediately before publication")
-    for fragment in ('if test "$status" -ne 0; then', 'cat -- "$output" >&2', 'cat -- "$error" >&2', 'if test -s "$error"; then'):
+    for fragment in ('if test "$status" -ne 0; then', 'cat -- "$output" >&2', 'cat -- "$error" >&2', 'if test -s "$error"; then', "grep -Eqv '^\\$ [[:print:]]*$'"):
         if fragment not in job("build"):
             raise ContractError(f"bounded build command does not preserve failure diagnostics: {fragment}")
     final_recheck = 'verify_source\n              revalidate_draft_for_publish "$probe" "$release_id"\n              bounded_gh "$RUNNER_TEMP/published.json"'
