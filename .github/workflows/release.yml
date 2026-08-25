@@ -102,8 +102,15 @@ jobs:
             status="$?"
             set -e
             test "$(wc -c <"$output")" -le 1048576 -a "$(wc -c <"$error")" -le 524288
-            test "$status" = 0
-            test ! -s "$error"
+            if test "$status" -ne 0; then
+              cat -- "$output" >&2
+              cat -- "$error" >&2
+              return "$status"
+            fi
+            if test -s "$error"; then
+              cat -- "$error" >&2
+              return 1
+            fi
             ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
           bounded_command "$RUNNER_TEMP/pnpm-install.out" 600 pnpm --reporter=append-only install --frozen-lockfile --ignore-scripts
