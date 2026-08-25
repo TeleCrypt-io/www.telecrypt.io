@@ -171,6 +171,13 @@ class ReleaseMetadataFixtures(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("duplicate key", result.stderr)
 
+    def test_requires_positive_integer_release_and_asset_ids(self) -> None:
+        for release_id in (True, 0, -1, 42.5):
+            self.assertNotEqual(self.check({**self.metadata, "id": release_id}).returncode, 0)
+        for asset_id in (True, 0, -1, 99.5):
+            metadata = {**self.metadata, "assets": [{**self.metadata["assets"][0], "id": asset_id}]}
+            self.assertNotEqual(self.check(metadata).returncode, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

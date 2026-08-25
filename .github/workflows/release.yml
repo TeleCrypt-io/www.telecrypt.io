@@ -142,7 +142,7 @@ jobs:
           archive="${RELEASE_TAG}.tar.gz"
           bounded_local "$d/tar.out" 300 tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner --format=posix --pax-option=atime:=0,ctime:=0 --create --file "$d/${RELEASE_TAG}.tar" --directory dist .
           test "$(wc -c <"$d/${RELEASE_TAG}.tar")" -le "$MAX_TAR_BYTES"
-          bounded_local "$d/gzip.out" 300 bash -c 'gzip --no-name --stdout "$1" >"$2"' _ "$d/${RELEASE_TAG}.tar" "$d/$archive"
+          bounded_local "$d/gzip.out" 300 bash -c "gzip --no-name --stdout \"\$1\" >\"\$2\"" _ "$d/${RELEASE_TAG}.tar" "$d/$archive"
           rm -f "$d/${RELEASE_TAG}.tar"
           bounded_local "$d/validate.out" 300 python3 scripts/validate-pages-artifact.py "$d/$archive"
           size="$(wc -c <"$d/$archive")"
@@ -247,17 +247,22 @@ jobs:
             return "$status"
           }
           verify_draft() {
-            python3 scripts/verify-release.py --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$2" >/dev/null
+            local id="$2"
+            [[ "$id" =~ ^[1-9][0-9]*$ ]]
+            python3 scripts/verify-release.py --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$id" >/dev/null
           }
           revalidate_draft_for_publish() {
             local json="$1" id="$2"
+            [[ "$id" =~ ^[1-9][0-9]*$ ]]
             bounded_gh "$json" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$id"
             verify_draft "$json" "$id"
             test "$(jq -c '[.assets[] | {id,name,state,size,digest}] | sort_by(.name)' "$json")" = "$expected_draft_asset_metadata"
             python3 scripts/verify-release.py --json "$json" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$archive" --expected-release-id "$id" >/dev/null
           }
           verify_published() {
-            python3 scripts/verify-release.py --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$2"
+            local id="$2"
+            [[ "$id" =~ ^[1-9][0-9]*$ ]]
+            python3 scripts/verify-release.py --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$id"
           }
           download_asset() {
             local json="$1" output="$2" asset_id error status
@@ -275,30 +280,52 @@ jobs:
             bounded_local "$output.validation" 300 python3 scripts/validate-pages-artifact.py "$output"
           }
           probe="$RUNNER_TEMP/release-probe.json"
-          set +e
-          bounded_gh "$probe" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG"
-          probe_status="$?"
-          set -e
-          if test "$probe_status" != 0; then
-            test ! -s "$probe"
-            test -s "$probe.err"
-            test "$(wc -c <"$probe.err")" -le 131072
-            status_probe="$RUNNER_TEMP/release-status"
-            set +e
-            bounded_gh "$status_probe" api --include --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG"
-            status_probe_exit="$?"
-            set -e
-            test "$status_probe_exit" != 0
-            status_line="$(awk '/^HTTP\/[0-9.]+[[:space:]]/{print; exit}' "$status_probe")"
-            [[ "$status_line" =~ ^HTTP/[0-9.]+[[:space:]]+404([[:space:]]|$) ]]
-            create="$RUNNER_TEMP/release-create.json"
-            verify_source
-            bounded_gh "$create" api --hostname github.com --method POST --header 'X-GitHub-Api-Version: 2026-03-10' --raw-field "tag_name=$RELEASE_TAG" --raw-field "name=$RELEASE_TAG" --raw-field "body=Release $RELEASE_TAG" --raw-field "target_commitish=$RELEASE_SHA" --field draft=true --field prerelease=false "/repos/$GITHUB_REPOSITORY/releases"
-            release_id="$(jq -er '.id | select(type=="number" and .>0 and floor==.)' "$create")"
-            bounded_gh "$probe" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$release_id"
-          else
-            release_id="$(jq -er '.id | select(type=="number" and .>0 and floor==.)' "$probe")"
-          fi
+          candidate_ids="$RUNNER_TEMP/release-candidate-ids"
+          : >"$candidate_ids"
+          release_page=1
+          release_page_complete=false
+          while test "$release_page" -le 100; do
+            page_json="$RUNNER_TEMP/release-page-$release_page.json"
+            bounded_gh "$page_json" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' --jq 'if type == "array" and length <= 100 and all(.[]; type == "object" and (.id | type) == "number" and (.id > 0) and ((.id | floor) == .id) and (.tag_name | type) == "string") then map({id,tag_name}) else error("Release page is not a complete bounded object array") end' "/repos/$GITHUB_REPOSITORY/releases?per_page=100&page=$release_page"
+            page_count="$(jq -er 'if type == "array" and length <= 100 and all(.[]; type == "object") then length else error("Release page is not a complete bounded object array") end' "$page_json")"
+            jq -r --arg tag "$RELEASE_TAG" '
+              if type != "array" or length > 100 or any(.[]; type != "object") then
+                error("Release page is not a complete bounded object array")
+              else
+                .[] | select(.tag_name == $tag) |
+                if (.id | type) == "number" and (.id > 0) and ((.id | floor) == .id) then
+                  .id
+                else
+                  error("matching Release has an invalid id")
+                end
+              end
+            ' "$page_json" >>"$candidate_ids"
+            if test "$page_count" -lt 100; then
+              release_page_complete=true
+              break
+            fi
+            release_page=$((release_page + 1))
+          done
+          test "$release_page_complete" = true
+          candidate_count="$(awk 'END { print NR + 0 }' "$candidate_ids")"
+          case "$candidate_count" in
+            0)
+              create="$RUNNER_TEMP/release-create.json"
+              verify_source
+              bounded_gh "$create" api --hostname github.com --method POST --header 'X-GitHub-Api-Version: 2026-03-10' --raw-field "tag_name=$RELEASE_TAG" --raw-field "name=$RELEASE_TAG" --raw-field "body=Release $RELEASE_TAG" --raw-field "target_commitish=$RELEASE_SHA" --field draft=true --field prerelease=false "/repos/$GITHUB_REPOSITORY/releases"
+              release_id="$(jq -er '.id | select(type=="number" and .>0 and floor==.)' "$create")"
+              bounded_gh "$probe" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$release_id"
+              ;;
+            1)
+              release_id="$(cat "$candidate_ids")"
+              [[ "$release_id" =~ ^[1-9][0-9]*$ ]]
+              bounded_gh "$probe" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$release_id"
+              ;;
+            *)
+              echo 'multiple Releases match the release tag' >&2
+              exit 1
+              ;;
+          esac
           state="$(jq -er 'if .draft==true then "draft" elif .draft==false then "published" else empty end' "$probe")"
           case "$state" in
             draft)

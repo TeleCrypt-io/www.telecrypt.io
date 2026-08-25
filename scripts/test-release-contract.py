@@ -128,6 +128,29 @@ def final_publish_recheck(probe: dict, tag: str = "www-v1.2.3") -> None:
         raise ContractError("final draft artifact changed")
 
 
+def discover_release_id(pages: list[object], tag: str) -> int | None:
+    """Model bounded pagination and the unique positive numeric-ID selection."""
+    if not pages:
+        raise ContractError("Release list is incomplete")
+    matches: list[int] = []
+    for page_number, page in enumerate(pages):
+        if not isinstance(page, list) or len(page) > 100 or any(not isinstance(release, dict) for release in page):
+            raise ContractError("Release page is not a complete bounded object array")
+        if len(page) < 100 and page_number != len(pages) - 1:
+            raise ContractError("Release list continued after its terminal page")
+        for release in page:
+            release_id = release.get("id")
+            if isinstance(release_id, bool) or not isinstance(release_id, int) or release_id <= 0 or not isinstance(release.get("tag_name"), str):
+                raise ContractError("Release page contains an invalid compact record")
+            if release.get("tag_name") == tag:
+                matches.append(release_id)
+    if len(pages[-1]) == 100:
+        raise ContractError("Release list is incomplete")
+    if len(matches) > 1:
+        raise ContractError("multiple Releases match the release tag")
+    return matches[0] if matches else None
+
+
 def check_state_machine() -> None:
     tag = "www-v1.2.3"
     assert publication_action(None, 1, tag) == "create-draft"
@@ -189,6 +212,25 @@ def check_state_machine() -> None:
         pass
     else:
         raise ContractError("published Release was accepted on the initial attempt")
+    full_page = [{"id": release_id, "tag_name": f"other-{release_id}"} for release_id in range(1, 101)]
+    assert discover_release_id([full_page, [{"id": 101, "tag_name": tag}]], tag) == 101
+    assert discover_release_id([[{"id": 42, "tag_name": tag}]], tag) == 42
+    assert discover_release_id([[]], tag) is None
+    for invalid_pages in (
+        [[exact_draft(tag)], [exact_draft(tag)]],
+        [full_page],
+        [{"not": "a page"}],
+        [list(range(101))],
+        [[{**exact_draft(tag), "id": 0}]],
+        [[{**exact_draft(tag), "id": True}]],
+        [[{"id": 0, "tag_name": "other"}]],
+        [[{"id": 42}]],
+    ):
+        try:
+            discover_release_id(invalid_pages, tag)
+        except ContractError:
+            continue
+        raise ContractError("incomplete or ambiguous Release-list state was accepted")
 
 
 def check_workflow() -> None:
@@ -206,7 +248,8 @@ def check_workflow() -> None:
         "git cat-file -t refs/remotes/origin/release-tag", "git merge-base --is-ancestor",
         "https://github.com/${GITHUB_REPOSITORY}.git", "--no-includes", "protocol.file.allow=never",
         "protocol.ext.allow=never", "protocol.ssh.allow=never", "credential.helper=", "core.askPass=/bin/false",
-        "http.proxy=", "https.proxy=", "scripts/bounded-command.py", "--include", "status_line", "--method POST",
+        "http.proxy=", "https.proxy=", "scripts/bounded-command.py", "releases?per_page=100&page=", "release_page_complete=false",
+        "candidate_ids", "while test \"$release_page\" -le 100", "--jq", "map({id,tag_name})", "[[ \"$release_id\" =~ ^[1-9][0-9]*$ ]]", "[[ \"$id\" =~ ^[1-9][0-9]*$ ]]", "multiple Releases match the release tag", "--method POST",
         "--field draft=true", "--method DELETE", "--input \"$archive\"", "Accept: application/octet-stream",
         "cmp -s \"$archive\"", "--method PATCH", "--field draft=false", "GITHUB_RUN_ATTEMPT",
         "verify-release.py", "validate-pages-artifact.py", "--expected-target-commit", "target_commitish", "created_at", "published_at",
@@ -226,8 +269,10 @@ def check_workflow() -> None:
     for fragment in ("GIT_CONFIG_NOSYSTEM", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS", "GIT_NO_REPLACE_OBJECTS", "GIT_ASKPASS", "SSH_ASKPASS", "GIT_ALLOW_PROTOCOL", "GH_HOST: github.com", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
         if fragment not in WORKFLOW:
             raise ContractError(f"transport hardening is missing {fragment}")
-    if "gh release create" in WORKFLOW or "release create" in WORKFLOW or "--draft" in WORKFLOW or "releases?per_page=" in WORKFLOW:
-        raise ContractError("one-shot or broad Release recovery remains")
+    if "gh release create" in WORKFLOW or "release create" in WORKFLOW or "--draft" in WORKFLOW or "/releases/tags/" in release_shell:
+        raise ContractError("draft recovery still relies on a tag lookup or one-shot release command")
+    if "--paginate" in release_shell or "releases?per_page=100&page=" not in release_shell:
+        raise ContractError("Release discovery is not explicitly bounded and paginated")
     if WORKFLOW.count("release:\n    needs: build") != 1 or "promote:\n    needs: [build, release]" not in WORKFLOW:
         raise ContractError("publication/deployment dependencies are not explicit")
     if WORKFLOW.index("actions/upload-pages-artifact@v5.0.0") > WORKFLOW.index("actions/deploy-pages@v5.0.0"):
