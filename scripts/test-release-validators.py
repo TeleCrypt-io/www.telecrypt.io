@@ -106,6 +106,9 @@ class ReleaseMetadataFixtures(unittest.TestCase):
 
     def check(self, metadata: dict, artifact: Path | None = None, expected_id: int | None = 42, state: str = "published") -> subprocess.CompletedProcess[str]:
         self.json_path.write_text(json.dumps(metadata), encoding="utf-8")
+        return self.check_json(artifact=artifact, expected_id=expected_id, state=state)
+
+    def check_json(self, artifact: Path | None = None, expected_id: int | None = 42, state: str = "published") -> subprocess.CompletedProcess[str]:
         command = [
             sys.executable,
             str(RELEASE_VALIDATOR),
@@ -156,6 +159,17 @@ class ReleaseMetadataFixtures(unittest.TestCase):
         wrong.write_bytes(b"tampered bytes")
         self.assertNotEqual(self.check(self.metadata, wrong).returncode, 0)
         self.assertNotEqual(self.check(self.metadata, expected_id=43).returncode, 0)
+
+    def test_rejects_duplicate_release_fields(self) -> None:
+        raw = json.dumps(self.metadata).replace(
+            f'"name": "{TAG}"',
+            f'"name": "{TAG}", "name": "tampered"',
+            1,
+        )
+        self.json_path.write_text(raw, encoding="utf-8")
+        result = self.check_json(artifact=self.artifact)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("duplicate key", result.stderr)
 
 
 if __name__ == "__main__":

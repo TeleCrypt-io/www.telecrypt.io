@@ -16,6 +16,19 @@ MAX_JSON_BYTES = 1024 * 1024
 MAX_ASSET_BYTES = 100 * 1024 * 1024
 
 
+class DuplicateJSONKey(ValueError):
+    """Reject ambiguous object members at the metadata trust boundary."""
+
+
+def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise DuplicateJSONKey(f"duplicate key {key!r}")
+        result[key] = value
+    return result
+
+
 def fail(message: str) -> None:
     raise SystemExit(f"release metadata: {message}")
 
@@ -64,8 +77,11 @@ def main() -> None:
     if not 0 < args.max_asset_bytes <= MAX_ASSET_BYTES:
         fail("asset limit is invalid")
     try:
-        release = json.loads(bounded(args.json, MAX_JSON_BYTES).decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        release = json.loads(
+            bounded(args.json, MAX_JSON_BYTES).decode("utf-8"),
+            object_pairs_hook=reject_duplicate_keys,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, DuplicateJSONKey) as error:
         fail(f"Release JSON is invalid: {error}")
     if not isinstance(release, dict):
         fail("Release JSON is not an object")
