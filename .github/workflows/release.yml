@@ -215,6 +215,19 @@ jobs:
             rm -rf "$d"
           }
           verify_source
+          bounded_local() {
+            local output="$1" seconds="$2" status error
+            shift 2
+            error="$output.err"
+            set +e
+            python3 scripts/bounded-command.py --stdout "$output" --stderr "$error" --max-stdout-bytes 131072 --max-stderr-bytes 131072 --timeout-seconds "$seconds" --kill-after-seconds 5 -- "$@"
+            status="$?"
+            set -e
+            test "$(wc -c <"$output")" -le 65536 -a "$(wc -c <"$error")" -le 65536
+            test "$status" = 0
+            test ! -s "$error"
+            ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
+          }
           archive="release/${RELEASE_TAG}.tar.gz"
           test -f "$archive"
           test "$(wc -c <"$archive")" = "$EXPECTED_SIZE"
@@ -232,19 +245,6 @@ jobs:
             test "$(wc -c <"$output")" -le 131072 -a "$(wc -c <"$error")" -le 131072
             if test "$status" = 0; then test ! -s "$error"; fi
             return "$status"
-          }
-          bounded_local() {
-            local output="$1" seconds="$2" status error
-            shift 2
-            error="$output.err"
-            set +e
-            python3 scripts/bounded-command.py --stdout "$output" --stderr "$error" --max-stdout-bytes 131072 --max-stderr-bytes 131072 --timeout-seconds "$seconds" --kill-after-seconds 5 -- "$@"
-            status="$?"
-            set -e
-            test "$(wc -c <"$output")" -le 65536 -a "$(wc -c <"$error")" -le 65536
-            test "$status" = 0
-            test ! -s "$error"
-            ! grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"
           }
           verify_draft() {
             python3 scripts/verify-release.py --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$2" >/dev/null

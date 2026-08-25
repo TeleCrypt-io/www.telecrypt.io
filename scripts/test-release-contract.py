@@ -241,6 +241,9 @@ def check_workflow() -> None:
     for fragment in ('if test "$status" -ne 0; then', 'cat -- "$output" >&2', 'cat -- "$error" >&2', 'if test -s "$error"; then', "grep -Eqv '^\\$ [[:print:]]*$'"):
         if fragment not in job("build"):
             raise ContractError(f"bounded build command does not preserve failure diagnostics: {fragment}")
+    release_shell = step(job("release"), "Create or reuse the exact draft Release")
+    if release_shell.index("bounded_local()") > release_shell.index('bounded_local "$RUNNER_TEMP/www-release-archive-validate.out"'):
+        raise ContractError("release archive validation calls bounded_local before defining it")
     final_recheck = 'verify_source\n              revalidate_draft_for_publish "$probe" "$release_id"\n              bounded_gh "$RUNNER_TEMP/published.json"'
     if final_recheck not in release_shell:
         raise ContractError("publication does not perform the final source and Release recheck immediately before PATCH")
