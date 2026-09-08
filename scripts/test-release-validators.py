@@ -47,7 +47,7 @@ def make_tar(path: Path, members: list[tarfile.TarInfo | tuple[str, bytes]]) -> 
 
 class PagesArchiveFixtures(unittest.TestCase):
     def check_archive(self, members: list[tarfile.TarInfo | tuple[str, bytes]], valid: bool) -> None:
-        with tempfile.TemporaryDirectory() as directory:
+        with tempfile.TemporaryDirectory(delete=False) as directory:
             archive = Path(directory) / "site.tar.gz"
             make_tar(archive, members)
             result = run([sys.executable, str(ARCHIVE_VALIDATOR), str(archive)])
@@ -81,7 +81,7 @@ class PagesArchiveFixtures(unittest.TestCase):
 
 class ReleaseMetadataFixtures(unittest.TestCase):
     def setUp(self) -> None:
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = tempfile.TemporaryDirectory(delete=False)
         self.root = Path(self.temp.name)
         self.artifact = self.root / f"{TAG}.tar.gz"
         self.artifact.write_bytes(b"immutable tested bytes")
@@ -100,9 +100,6 @@ class ReleaseMetadataFixtures(unittest.TestCase):
             "assets": [{"id": 99, "name": f"{TAG}.tar.gz", "state": "uploaded", "size": self.artifact.stat().st_size, "digest": digest}],
         }
         self.json_path = self.root / "release.json"
-
-    def tearDown(self) -> None:
-        self.temp.cleanup()
 
     def check(self, metadata: dict, artifact: Path | None = None, expected_id: int | None = 42, state: str = "published") -> subprocess.CompletedProcess[str]:
         self.json_path.write_text(json.dumps(metadata), encoding="utf-8")
