@@ -70,7 +70,6 @@ def main() -> None:
     parser.add_argument("--json", type=Path, required=True)
     parser.add_argument("--tag", required=True)
     parser.add_argument("--asset-name", required=True)
-    parser.add_argument("--expected-target-commit", required=True)
     parser.add_argument("--state", choices=("draft", "published"), required=True)
     parser.add_argument("--artifact", type=Path)
     parser.add_argument("--max-asset-bytes", type=int, default=MAX_ASSET_BYTES)
@@ -114,7 +113,6 @@ def main() -> None:
         release.get("tag_name") != args.tag
         or release.get("name") != args.tag
         or release.get("body") != f"Release {args.tag}"
-        or release.get("target_commitish") != args.expected_target_commit
         or release.get("draft") is not expected_draft
         or release.get("prerelease") is not False
         or not immutable_ok

@@ -278,7 +278,7 @@ jobs:
           verify_draft() {
             local id="$2"
             [[ "$id" =~ ^[1-9][0-9]*$ ]]
-            verify_release "$1" --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$id"
+            verify_release "$1" --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$id"
           }
           revalidate_draft_for_publish() {
             local json="$1" id="$2"
@@ -286,12 +286,12 @@ jobs:
             capture_gh "$json" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$id"
             verify_draft "$json" "$id"
             api_expect "$json" "$expected_draft_asset_metadata" jq -c '[.assets[] | {id,name,state,size,digest}] | sort_by(.name)' "$json"
-            verify_release "$json" --json "$json" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$archive" --expected-release-id "$id"
+            verify_release "$json" --json "$json" --tag "$RELEASE_TAG" --asset-name "$asset_name" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$archive" --expected-release-id "$id"
           }
           verify_published() {
             local id="$2"
             [[ "$id" =~ ^[1-9][0-9]*$ ]]
-            verify_release "$1" --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$id"
+            verify_release "$1" --json "$1" --tag "$RELEASE_TAG" --asset-name "$asset_name" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$id"
           }
           download_asset() {
             local json="$1" output="$2" asset_id
@@ -363,7 +363,7 @@ jobs:
           state="$(api_value "$probe" jq -er 'if .draft==true then "draft" elif .draft==false then "published" else empty end' "$probe")"
           case "$state" in
             draft)
-              require_api_json "$probe" "$probe.err" jq -e --arg tag "$RELEASE_TAG" --arg target "$RELEASE_SHA" 'def iso: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$") and ((try fromdateiso8601 catch null) != null); (.tag_name==$tag and .name==$tag and .body==("Release "+$tag) and .target_commitish==$target and .draft==true and .prerelease==false and (.created_at|iso) and .published_at==null and ((.assets|type)=="array"))' "$probe"
+              require_api_json "$probe" "$probe.err" jq -e --arg tag "$RELEASE_TAG" 'def iso: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$") and ((try fromdateiso8601 catch null) != null); (.tag_name==$tag and .name==$tag and .body==("Release "+$tag) and .draft==true and .prerelease==false and (.created_at|iso) and .published_at==null and ((.assets|type)=="array"))' "$probe"
               require_api_json "$probe" "$probe.err" jq -e '((.assets|type)=="array") and all(.assets[]; type == "object" and (.id|type == "number" and . > 0 and floor == .))' "$probe"
               asset_ids="$RUNNER_TEMP/release-assets"
               api_value "$probe" jq -r '.assets[]?.id // empty' "$probe" >"$asset_ids"
@@ -386,7 +386,7 @@ jobs:
               capture_gh "$RUNNER_TEMP/upload.json" api --hostname github.com --method POST --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Accept: application/vnd.github+json' --header 'Content-Type: application/gzip' --input "$archive" "$upload_url?name=$asset_name"
               capture_gh "$probe" api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$release_id"
               verify_draft "$probe" "$release_id"
-              verify_release "$probe" --json "$probe" --tag "$RELEASE_TAG" --asset-name "$asset_name" --expected-target-commit "$RELEASE_SHA" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$archive" --expected-release-id "$release_id"
+              verify_release "$probe" --json "$probe" --tag "$RELEASE_TAG" --asset-name "$asset_name" --state draft --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$archive" --expected-release-id "$release_id"
               expected_draft_asset_metadata="$(api_value "$probe" jq -c '[.assets[] | {id,name,state,size,digest}] | sort_by(.name)' "$probe")"
               download_asset "$probe" "$RUNNER_TEMP/draft.tar.gz"
               # Revalidate the authoritative tag and current main immediately before the one publish mutation.
@@ -506,13 +506,13 @@ jobs:
             return "$status"
           }
           capture_command "$json" 120 -- gh api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' "/repos/$GITHUB_REPOSITORY/releases/$EXPECTED_RELEASE_ID"
-          info="$(verify_release "$json" --json "$json" --tag "$RELEASE_TAG" --asset-name "$archive" --expected-target-commit "$RELEASE_SHA" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$EXPECTED_RELEASE_ID")"
+          info="$(verify_release "$json" --json "$json" --tag "$RELEASE_TAG" --asset-name "$archive" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --expected-release-id "$EXPECTED_RELEASE_ID")"
           asset_id="$(api_value "$json" jq -er '.asset_id | select(type=="number" and .>0 and floor==.)' <<<"$info")"
           downloaded="$RUNNER_TEMP/$archive"
           capture_command "$downloaded" 120 --binary -- gh api --hostname github.com --header 'X-GitHub-Api-Version: 2026-03-10' --header 'Accept: application/octet-stream' "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
           test "$(wc -c <"$downloaded")" = "$EXPECTED_SIZE"
           test "sha256:$(sha256sum "$downloaded" | awk '{print $1}')" = "$EXPECTED_DIGEST"
-          verify_release "$json" --json "$json" --tag "$RELEASE_TAG" --asset-name "$archive" --expected-target-commit "$RELEASE_SHA" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$downloaded" --expected-release-id "$EXPECTED_RELEASE_ID"
+          verify_release "$json" --json "$json" --tag "$RELEASE_TAG" --asset-name "$archive" --state published --max-asset-bytes "$MAX_ASSET_BYTES" --artifact "$downloaded" --expected-release-id "$EXPECTED_RELEASE_ID"
           mkdir dist
           capture_command "$RUNNER_TEMP/www-archive-extract.out" 300 --reject-warnings -- tar --extract --gzip --file "$downloaded" --directory dist --no-overwrite-dir --no-same-owner --no-same-permissions
           capture_command "$RUNNER_TEMP/www-generated-site-validate.out" 300 --reject-warnings -- python3 scripts/validate-generated-site.py dist

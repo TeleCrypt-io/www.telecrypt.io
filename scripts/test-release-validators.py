@@ -115,8 +115,6 @@ class ReleaseMetadataFixtures(unittest.TestCase):
             TAG,
             "--asset-name",
             f"{TAG}.tar.gz",
-            "--expected-target-commit",
-            "a" * 40,
             "--state",
             state,
             "--max-asset-bytes",
@@ -133,6 +131,10 @@ class ReleaseMetadataFixtures(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout)["asset_id"], 99)
 
+    def test_release_commitish_does_not_replace_verified_tag_identity(self) -> None:
+        result = self.check({**self.metadata, "target_commitish": "main"}, self.artifact)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_accepts_exact_draft_release_and_rejects_published_timestamp(self) -> None:
         draft = {**self.metadata, "draft": True, "immutable": False, "published_at": None}
         result = self.check(draft, self.artifact, state="draft")
@@ -147,7 +149,6 @@ class ReleaseMetadataFixtures(unittest.TestCase):
             {"assets": [self.metadata["assets"][0], {"id": 100}]},
             {"draft": True},
             {"body": "tampered"},
-            {"target_commitish": "main"},
             {"published_at": "2025-01-01T00:00:00Z"},
         ):
             metadata = {**self.metadata, **change}

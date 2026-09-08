@@ -97,7 +97,7 @@ def publication_action(probe: dict | None, attempt: int, tag: str = "www-v1.2.3"
         return "create-draft"
     if probe.get("transport") in {"timeout", "error"}:
         raise ContractError("transport failure is not a confirmed 404")
-    if probe.get("tag_name") != tag or probe.get("name") != tag or probe.get("body") != f"Release {tag}" or probe.get("target_commitish") != "a" * 40 or probe.get("prerelease") is not False:
+    if probe.get("tag_name") != tag or probe.get("name") != tag or probe.get("body") != f"Release {tag}" or probe.get("prerelease") is not False:
         raise ContractError("Release identity conflict")
     if probe.get("draft") is True:
         require_exact_draft(probe)
@@ -148,7 +148,7 @@ def check_state_machine() -> None:
     final_draft = {**exact_draft(tag), "assets": [{"id": 43, "name": f"{tag}.tar.gz", "state": "uploaded", "size": 10, "digest": f"sha256:{'a' * 64}"}]}
     final_publish_recheck(final_draft, tag)
     for field in (
-        "id", "tag_name", "name", "body", "target_commitish", "draft", "prerelease", "immutable",
+        "id", "tag_name", "name", "body", "draft", "prerelease", "immutable",
         "created_at", "published_at", "asset_state", "asset_size", "assets", "asset_id", "duplicate_name",
         "duplicate_id",
     ):
