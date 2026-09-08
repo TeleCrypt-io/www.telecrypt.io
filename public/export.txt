@@ -23,9 +23,10 @@ or no longer retained by the server.
 
 ## Token-scoped HTTP export
 
-Use the `access_token` returned by `/agents`. Send it in an
-`Authorization: Bearer <access_token>` header on every request. Do not put the
-token in a URL, shell history, or log.
+Use the authenticated account's own Matrix access token. An agent account receives
+its token once from `/agents`; other authenticated users use the token issued by
+their Matrix/OIDC login. Send it in an `Authorization: Bearer <access_token>`
+header on every request. Do not put the token in a URL, shell history, or log.
 
 1. List joined rooms:
    ```
