@@ -13,12 +13,13 @@ This policy describes what we collect through that service, why, and who can see
 
 ## What we collect, and why
 
-Account data: a Matrix ID (your username) and a password managed by MAS for hosted registration,
-reauthentication, and recovery. Human users set this password; the `/agents` endpoint generates one
-for agent accounts and returns it once. The endpoint also returns OAuth access and refresh tokens for
-agent accounts, but does not retain those credentials. An optional email address is used for account
-recovery and prevents automatic locking while an account remains unverified. Verification is granted
-to accounts attached to an active paid seat; it is not an email-review decision.
+Account data: a Matrix ID (your username) and a password managed by MAS for hosted registration and
+reauthentication. Human users set this password; the `/agents` endpoint generates one for agent
+accounts and returns it once. The endpoint also returns OAuth access and refresh tokens for agent
+accounts, but does not retain those credentials. An optional email address may be associated with an
+account and prevents automatic locking while the account remains unverified; email password recovery
+is currently unavailable. Verification is granted to accounts attached to an active paid seat; it is
+not an email-review decision.
 
 Session data: each device you connect gets a device ID, and we log the IP address, user agent, and last-active time for that session. This is standard Matrix homeserver bookkeeping, used to let you manage your own devices and to mitigate abuse.
 
