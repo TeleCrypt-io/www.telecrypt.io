@@ -4,11 +4,13 @@ import PageLayout from "@/layouts/Base.astro";
 interface Props {
 	title: string;
 	description?: string;
+	eyebrow?: string;
 	label?: string;
+	prose?: boolean;
 	structuredData?: Record<string, unknown>;
 }
 
-const { title, description, label, structuredData } = Astro.props;
+const { title, description, eyebrow, label, prose = true, structuredData } = Astro.props;
 const meta = { title, description: description ?? title };
 const heading = label ?? title;
 ---
@@ -16,9 +18,10 @@ const heading = label ?? title;
 <PageLayout meta={meta} structuredData={structuredData}>
 	<section class="page">
 		<header class="page-intro">
+			{eyebrow && <p class="page-eyebrow">{eyebrow}</p>}
 			<h1 class="page-title">{heading}</h1>
 		</header>
-		<div class="page-body prose">
+		<div class:list={["page-body", prose && "prose"]}>
 			<slot />
 		</div>
 	</section>
@@ -46,6 +49,15 @@ const heading = label ?? title;
 		line-height: 1.1;
 		color: hsl(var(--theme-text));
 		margin: 0;
+	}
+	.page-eyebrow {
+		font-family: var(--font-sans);
+		font-size: 11.5px;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: hsl(var(--theme-text) / 0.5);
+		margin: 0 0 14px;
 	}
 	.page-body {
 		width: 100%;

@@ -12,7 +12,6 @@ from pathlib import Path
 TAG = re.compile(r"www-v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\Z")
 DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
 UTC_TIMESTAMP = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\Z")
-MAX_JSON_BYTES = 1024 * 1024
 MAX_ASSET_BYTES = 100 * 1024 * 1024
 
 
@@ -33,7 +32,7 @@ def fail(message: str) -> None:
     raise SystemExit(f"release metadata: {message}")
 
 
-def bounded(path: Path, limit: int) -> bytes:
+def read_limited_artifact(path: Path, limit: int) -> bytes:
     try:
         with path.open("rb") as stream:
             data = stream.read(limit + 1)
@@ -42,6 +41,13 @@ def bounded(path: Path, limit: int) -> bytes:
     if len(data) > limit:
         fail(f"{path} exceeds its byte limit")
     return data
+
+
+def read_complete(path: Path) -> bytes:
+    try:
+        return path.read_bytes()
+    except OSError as error:
+        fail(f"cannot read {path}: {error}")
 
 
 def positive(value: object, label: str) -> int:
@@ -76,13 +82,18 @@ def main() -> None:
         fail("asset name is not exact")
     if not 0 < args.max_asset_bytes <= MAX_ASSET_BYTES:
         fail("asset limit is invalid")
+    raw = read_complete(args.json)
     try:
         release = json.loads(
-            bounded(args.json, MAX_JSON_BYTES).decode("utf-8"),
+            raw.decode("utf-8"),
             object_pairs_hook=reject_duplicate_keys,
         )
     except (UnicodeDecodeError, json.JSONDecodeError, DuplicateJSONKey) as error:
-        fail(f"Release JSON is invalid: {error}")
+        body = raw.decode("utf-8", errors="replace")
+        fail(
+            f"Release JSON is invalid: {type(error).__name__}: {error}"
+            f"\nresponse body:\n{body}"
+        )
     if not isinstance(release, dict):
         fail("Release JSON is not an object")
     release_id = positive(release.get("id"), "Release id")
@@ -123,7 +134,7 @@ def main() -> None:
     if not isinstance(digest, str) or not DIGEST.fullmatch(digest):
         fail("Release asset digest is not exact")
     if args.artifact is not None:
-        data = bounded(args.artifact, args.max_asset_bytes)
+        data = read_limited_artifact(args.artifact, args.max_asset_bytes)
         if len(data) != size or f"sha256:{hashlib.sha256(data).hexdigest()}" != digest:
             fail("downloaded bytes do not match Release metadata")
     print(json.dumps({"asset_id": asset_id, "digest": digest, "release_id": release_id, "size": size}, sort_keys=True))

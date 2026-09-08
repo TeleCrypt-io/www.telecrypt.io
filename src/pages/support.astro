@@ -1,5 +1,5 @@
 ---
-import PageLayout from "@/layouts/Base.astro";
+import Page from "@/components/Page.astro";
 
 const meta = {
 	title: "Support",
@@ -7,51 +7,27 @@ const meta = {
 };
 ---
 
-<PageLayout meta={meta}>
-	<section class="page">
-		<header class="page-intro">
-			<h1 class="page-title">Support</h1>
-			<p class="page-lede">
-				Account issues, bug reports, or anything else — write to us and we’ll get back to you.
-			</p>
-		</header>
-		<a class="cta" href="mailto:support@telecrypt.io">support@telecrypt.io</a>
-	</section>
-</PageLayout>
+<Page title={meta.title} description={meta.description} prose={false}>
+	<p class="page-lede">
+		Account issues, bug reports, or anything else — write to us and we’ll get back to you.
+	</p>
+	<a class="cta" href="mailto:support@telecrypt.io">support@telecrypt.io</a>
+</Page>
 
 <style>
-	.page {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		padding: 8px 0 48px;
-		width: 100%;
-	}
-	.page-intro {
-		width: 100%;
-		max-width: 36rem;
-		margin-bottom: 28px;
-	}
-	.page-title {
-		font-family: var(--font-sans);
-		font-size: clamp(28px, 4vw, 40px);
-		font-weight: 700;
-		letter-spacing: -0.035em;
-		line-height: 1.1;
-		color: hsl(var(--theme-text));
-		margin: 0 0 12px;
-	}
 	.page-lede {
 		font-family: var(--font-sans);
 		font-size: 15.5px;
 		line-height: 1.5;
 		color: hsl(var(--theme-text) / 0.78);
-		margin: 0 auto;
+		margin: 0 auto 28px;
 		max-width: 36ch;
+		text-align: center;
 	}
 	.cta {
-		display: inline-flex;
+		display: flex;
+		width: fit-content;
+		margin: 0 auto;
 		font-family: var(--font-sans);
 		font-size: 15px;
 		font-weight: 600;
@@ -66,8 +42,8 @@ const meta = {
 	}
 
 	@media (max-width: 720px) {
-		.page {
-			padding: 4px 0 36px;
+		.page-lede {
+			margin-bottom: 22px;
 		}
 	}
 </style>

@@ -13,9 +13,9 @@ Built with [Astro](https://astro.build) and published as a fully static build.
 ## Content
 
 The site contains the landing page, pricing, technology, About, support, privacy, and export pages.
-The canonical machine-readable [`llms.txt`](https://telecrypt-io.github.io/llms-authority/llms.txt)
-is maintained in the `llms-authority` repository and served from that exact GitHub Pages URL. This
-site links to that authority rather than copying it. `export.txt` is served verbatim, and
+The canonical machine-readable [`llms.txt`](https://telecrypt.io/llms.txt)
+is maintained in the `llms-authority` repository and served at that canonical URL. This site
+links to that authority rather than copying it. `export.txt` is served verbatim, and
 `privacy.txt` is generated from the same source as the privacy page.
 
 ## Develop
@@ -47,23 +47,19 @@ ruleset are operator/Harness pre-tag prerequisites. The Actions token cannot rea
 endpoints, so Harness must block tag publication unless both settings have been verified. The
 release and Pages workflows fail closed if the final Release is not exact, non-prerelease, and
 immutable; they compare the archive with the Release API's SHA-256 asset digest rather than
-publishing a separate checksum asset. The tested archive is transferred under a
-run/attempt/commit-specific artifact name and its size and digest are checked again before Release
-creation and Pages promotion. If a runner interruption leaves an already published immutable
-Release, a rerun accepts it only after the body, Release and asset IDs, timestamps, source
+publishing a separate checksum asset. The tested archive is transferred under a stable
+run/commit-specific artifact name that is overwritten by an exact rerun, and its size and digest
+are checked again before Release creation and Pages promotion. If a runner interruption leaves an
+already published immutable Release, a rerun accepts it only after the body, Release and asset IDs, timestamps, source
 annotated-tag SHA, metadata, and exact bytes match. A rerun can also recover an exact draft through
-the tag-specific Release endpoint, then verifies the full draft and downloaded bytes before
-publishing it; a missing tag creates a new draft only after a confirmed 404, and mismatches remain
-fail-closed for manual cleanup. The workflow does not scan a broad Releases list. Release creation,
-asset upload, and publication are separate remote operations,
+a bounded, paginated Releases inventory keyed by the tag, then verifies the full draft and
+downloaded bytes before publishing it; an absent tag creates a new draft only after the complete
+inventory is confirmed, while ambiguity and mismatches remain fail-closed for manual cleanup.
+Release creation, asset upload, and publication are separate remote operations,
 so the workflow does not claim atomicity across an interruption or a tag mutation race. The hosted
 artifact transfer action has no supported pre-write byte-limit option; the producer and immediate
 consumer enforce the run-specific size/digest binding and reject any oversized or mismatched
 transfer before Release or Pages use.
-
-The apex domain, `telecrypt.io`, is intentionally separate: it provides Matrix discovery and
-redirects browser traffic to `www.telecrypt.io`. Matrix client, authentication, and control-plane
-APIs are served at `https://backend.telecrypt.io`; Matrix IDs remain `@user:telecrypt.io`.
 
 ## License
 

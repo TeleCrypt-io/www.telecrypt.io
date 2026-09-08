@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify the single-workflow release promotion contract
+      - name: Verify release-state and site contracts
         run: python3 scripts/test-release-contract.py
 
       - name: Verify the archive and generated-site validators
@@ -73,40 +73,34 @@ jobs:
           test "$(node --version)" = v22.23.2
           test "$(pnpm --version)" = 11.22.0
 
-      - name: Install, lint, and build with bounded diagnostics
+      - name: Install, lint, and build with complete diagnostics
         shell: bash
         run: |
           set -euo pipefail
-          bounded_command() {
-            local output="$1" seconds="$2" status error
+          source scripts/capture-diagnostics.sh
+          capture_command() {
+            local output="$1" seconds="$2" status error reject_warnings=false warning=false replay_status=0
             shift 2
+            if test "${1:-}" = --reject-warnings; then reject_warnings=true; shift; fi
+            test "${1:-}" = -- || return 64
+            shift
             error="$output.err"
-            set +e
-            python3 scripts/bounded-command.py --stdout "$output" --stderr "$error" --max-stdout-bytes 1048576 --max-stderr-bytes 524288 --timeout-seconds "$seconds" --kill-after-seconds 5 -- "$@"
-            status="$?"
-            set -e
-            test "$(wc -c <"$output")" -le 1048576 -a "$(wc -c <"$error")" -le 524288
-            if [ "$status" -ne 0 ]; then
-              printf 'bounded command failed (status=%s): %s\n' "$status" "$*" >&2
-              sed -n '1,200p' "$output" >&2
-              sed -n '1,200p' "$error" >&2
-              return "$status"
+            if run_captured "$output" "$error" "$seconds" "$@"; then
+              status=0
+            else
+              status="$?"
             fi
-            if [ -s "$error" ]; then
-              printf 'bounded command wrote stderr: %s\n' "$*" >&2
-              sed -n '1,200p' "$error" >&2
-              return 1
+            if test "$reject_warnings" = true && grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"; then warning=true; fi
+            if test "$warning" = true && test "$status" -eq 0; then
+              replay_capture "$output" "$error" || replay_status="$?"
+            else
+              finish_capture "$status" true "$output" "$error" || replay_status="$?"
             fi
-            if grep -Eqi '(^|[^[:alnum:]_])warn(ing)?([^[:alnum:]_]|$)' "$output" "$error"; then
-              printf 'bounded command emitted a warning: %s\n' "$*" >&2
-              sed -n '1,200p' "$output" >&2
-              return 1
-            fi
+            if test "$status" -eq 0 && test "$replay_status" -ne 0; then return "$replay_status"; fi
+            if test "$warning" = true; then return 1; fi
+            return "$status"
           }
-          # The command timeout bounds a stalled runner; a transient per-tarball
-          # bandwidth warning is not a repository warning and is disabled.
-          bounded_command "$RUNNER_TEMP/pnpm-install.out" 600 pnpm --config.fetch-min-speed-ki-bps=0 --reporter=append-only install --frozen-lockfile --ignore-scripts
-          bounded_command "$RUNNER_TEMP/biome-lint.out" 300 ./node_modules/.bin/biome lint .
-          bounded_command "$RUNNER_TEMP/astro-check.out" 600 ./node_modules/.bin/astro check
-          bounded_command "$RUNNER_TEMP/astro-build.out" 600 ./node_modules/.bin/astro build
-          PYTHONDONTWRITEBYTECODE=1 python3 scripts/test-bounded-command.py
+          capture_command "$RUNNER_TEMP/pnpm-install.out" 600 --reject-warnings -- pnpm --config.fetch-min-speed-ki-bps=0 --reporter=append-only install --frozen-lockfile --ignore-scripts
+          capture_command "$RUNNER_TEMP/biome-lint.out" 300 --reject-warnings -- ./node_modules/.bin/biome lint .
+          capture_command "$RUNNER_TEMP/astro-check.out" 600 --reject-warnings -- ./node_modules/.bin/astro check
+          capture_command "$RUNNER_TEMP/astro-build.out" 600 --reject-warnings -- ./node_modules/.bin/astro build

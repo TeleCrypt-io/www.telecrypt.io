@@ -171,6 +171,14 @@ class ReleaseMetadataFixtures(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("duplicate key", result.stderr)
 
+    def test_replays_malformed_release_body(self) -> None:
+        raw = b'{"id":'
+        self.json_path.write_bytes(raw)
+        result = self.check_json(artifact=self.artifact)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("response body:", result.stderr)
+        self.assertIn(raw.decode(), result.stderr)
+
     def test_requires_positive_integer_release_and_asset_ids(self) -> None:
         for release_id in (True, 0, -1, 42.5):
             self.assertNotEqual(self.check({**self.metadata, "id": release_id}).returncode, 0)

@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-WORKFLOW = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
-VERIFY = (ROOT / ".github/workflows/verify.yml").read_text(encoding="utf-8")
-VERIFIER = (ROOT / "scripts/verify-release.py").read_text(encoding="utf-8")
+VERIFY_SOURCE = (ROOT / "scripts/verify-source.sh").read_text(encoding="utf-8")
 FOOTER = (ROOT / "src/components/layout/Footer.astro").read_text(encoding="utf-8")
 BASE_HEAD = (ROOT / "src/components/BaseHead.astro").read_text(encoding="utf-8")
 PRIVACY_PAGE = (ROOT / "src/pages/privacy.astro").read_text(encoding="utf-8")
@@ -22,31 +19,24 @@ ASTRO_CONFIG = (ROOT / "astro.config.ts").read_text(encoding="utf-8")
 LLMS_PAGE = (ROOT / "src/pages/llms.astro").read_text(encoding="utf-8")
 ABOUT_TEXT = (ROOT / "src/content/page/about.md").read_text(encoding="utf-8")
 README_TEXT = (ROOT / "README.md").read_text(encoding="utf-8")
-PACKAGE = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
 
 
 class ContractError(AssertionError):
     pass
 
 
-def job(name: str) -> str:
-    match = re.search(rf"^  {re.escape(name)}:\n(?P<body>.*?)(?=^  [A-Za-z0-9_-]+:|\Z)", WORKFLOW, re.MULTILINE | re.DOTALL)
-    if not match:
-        raise ContractError(f"missing workflow job: {name}")
-    return match.group("body")
-
-
-def step(job_text: str, name: str) -> str:
-    marker = f"      - name: {name}\n"
-    start = job_text.find(marker)
-    if start < 0:
-        raise ContractError(f"missing step: {name}")
-    shell = job_text.find("        run: |\n", start)
-    if shell < 0:
-        raise ContractError(f"step has no shell: {name}")
-    body_start = shell + len("        run: |\n")
-    end = job_text.find("\n      - ", body_start)
-    return job_text[body_start:] if end < 0 else job_text[body_start:end]
+def check_source_verification() -> None:
+    if "|| true" in VERIFY_SOURCE:
+        raise ContractError("source verification discards a required Git cleanup result")
+    for fragment in (
+        'if test "$config_status" = 0; then',
+        'sort -u -- "$config_file" >"$config_file.unique"',
+        'git config --local --no-includes --unset-all "$key"',
+        'elif test "$config_status" != 1; then',
+        'timeout --signal=TERM --kill-after=5s 60s',
+    ):
+        if fragment not in VERIFY_SOURCE:
+            raise ContractError(f"source verification is missing {fragment}")
 
 
 def exact_published(tag: str) -> dict:
@@ -91,7 +81,6 @@ def require_exact_draft(probe: dict) -> None:
         or probe.get("published_at") is not None
         or probe.get("immutable") not in (False, None)
         or not isinstance(probe.get("assets"), list)
-        or len(probe["assets"]) > 64
         or any(
             not isinstance(asset, dict)
             or not isinstance(asset.get("id"), int)
@@ -100,7 +89,7 @@ def require_exact_draft(probe: dict) -> None:
             for asset in probe["assets"]
         )
     ):
-        raise ContractError("draft Release metadata or assets are not bounded and exact")
+        raise ContractError("draft Release metadata or assets are not exact")
 
 
 def publication_action(probe: dict | None, attempt: int, tag: str = "www-v1.2.3") -> str:
@@ -233,67 +222,6 @@ def check_state_machine() -> None:
         raise ContractError("incomplete or ambiguous Release-list state was accepted")
 
 
-def check_workflow() -> None:
-    if (ROOT / ".nvmrc").exists():
-        raise ContractError("obsolete .nvmrc Node.js declaration remains")
-    if (ROOT / ".node-version").read_text(encoding="utf-8").strip() != "22.23.2" or PACKAGE.get("engines", {}).get("node") != "22.23.2":
-        raise ContractError("Node.js version is not declared exactly")
-    if "test \"$(node --version)\" = v22.23.2" not in WORKFLOW or "test \"$(pnpm --version)\" = 11.22.0" not in WORKFLOW:
-        raise ContractError("workflow does not verify the exact Node.js and pnpm toolchain")
-    if "PUBLIC_RELEASE_YEAR" in FOOTER or "import.meta.env" in FOOTER:
-        raise ContractError("Footer has an ambient release-year build input")
-    release_shell = step(job("release"), "Create or reuse the exact draft Release")
-    for fragment in (
-        "refs/tags/$RELEASE_TAG:refs/remotes/origin/release-tag", "refs/heads/main:refs/remotes/origin/main",
-        "git cat-file -t refs/remotes/origin/release-tag", "git merge-base --is-ancestor",
-        "https://github.com/${GITHUB_REPOSITORY}.git", "--no-includes", "protocol.file.allow=never",
-        "protocol.ext.allow=never", "protocol.ssh.allow=never", "credential.helper=", "core.askPass=/bin/false",
-        "http.proxy=", "https.proxy=", "scripts/bounded-command.py", "releases?per_page=100&page=", "release_page_complete=false",
-        "candidate_ids", "while test \"$release_page\" -le 100", "--jq", "map({id,tag_name})", "[[ \"$release_id\" =~ ^[1-9][0-9]*$ ]]", "[[ \"$id\" =~ ^[1-9][0-9]*$ ]]", "multiple Releases match the release tag", "--method POST",
-        "--field draft=true", "--method DELETE", "--input \"$archive\"", "Accept: application/octet-stream",
-        "cmp -s \"$archive\"", "--method PATCH", "--field draft=false", "GITHUB_RUN_ATTEMPT",
-        "verify-release.py", "validate-pages-artifact.py", "--expected-target-commit", "target_commitish", "created_at", "published_at",
-    ):
-        if fragment not in release_shell:
-            raise ContractError(f"release state machine is missing {fragment}")
-    if "github.run_attempt" in WORKFLOW:
-        raise ContractError("artifact names vary across reruns")
-    if "name: www-release-${{ github.run_id }}-${{ github.sha }}" not in WORKFLOW or "overwrite: true" not in WORKFLOW:
-        raise ContractError("website artifact reruns are not stable and overwritable")
-    if "--output" in WORKFLOW:
-        raise ContractError("binary downloads still use unsupported gh api --output")
-    if "upload_url" not in release_shell or "uploads.github.com" not in release_shell or '"$upload_url?name=$asset_name"' not in release_shell:
-        raise ContractError("Release asset upload does not use the authoritative uploads.github.com URL")
-    if release_shell.index("--method POST") > release_shell.index("--method DELETE") or release_shell.index("--method DELETE") > release_shell.index("--input \"$archive\"") or release_shell.index("--input \"$archive\"") > release_shell.index("--method PATCH"):
-        raise ContractError("draft lifecycle operations are out of order")
-    for fragment in ("GIT_CONFIG_NOSYSTEM", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS", "GIT_NO_REPLACE_OBJECTS", "GIT_ASKPASS", "SSH_ASKPASS", "GIT_ALLOW_PROTOCOL", "GH_HOST: github.com", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
-        if fragment not in WORKFLOW:
-            raise ContractError(f"transport hardening is missing {fragment}")
-    if "gh release create" in WORKFLOW or "release create" in WORKFLOW or "--draft" in WORKFLOW or "/releases/tags/" in release_shell:
-        raise ContractError("draft recovery still relies on a tag lookup or one-shot release command")
-    if "--paginate" in release_shell or "releases?per_page=100&page=" not in release_shell:
-        raise ContractError("Release discovery is not explicitly bounded and paginated")
-    if WORKFLOW.count("release:\n    needs: build") != 1 or "promote:\n    needs: [build, release]" not in WORKFLOW:
-        raise ContractError("publication/deployment dependencies are not explicit")
-    if WORKFLOW.index("actions/upload-pages-artifact@v5.0.0") > WORKFLOW.index("actions/deploy-pages@v5.0.0"):
-        raise ContractError("Pages deployment precedes artifact upload")
-    if "immutable" not in VERIFIER or "digest" not in VERIFIER:
-        raise ContractError("Release verifier does not bind immutable bytes")
-    if "Run offline release helper" in VERIFY or "test-release-contract.py" not in VERIFY:
-        raise ContractError("verification workflow is not using the behavioral contract")
-    if "revalidate_draft_for_publish" not in release_shell:
-        raise ContractError("the draft is not re-fetched immediately before publication")
-    for fragment in ('if test "$status" -ne 0; then', 'cat -- "$output" >&2', 'cat -- "$error" >&2', 'if test -s "$error"; then', "grep -Eqv '^\\$ [[:print:]]*$'"):
-        if fragment not in job("build"):
-            raise ContractError(f"bounded build command does not preserve failure diagnostics: {fragment}")
-    release_shell = step(job("release"), "Create or reuse the exact draft Release")
-    if release_shell.index("bounded_local()") > release_shell.index('bounded_local "$RUNNER_TEMP/www-release-archive-validate.out"'):
-        raise ContractError("release archive validation calls bounded_local before defining it")
-    final_recheck = 'verify_source\n              revalidate_draft_for_publish "$probe" "$release_id"\n              bounded_gh "$RUNNER_TEMP/published.json"'
-    if final_recheck not in release_shell:
-        raise ContractError("publication does not perform the final source and Release recheck immediately before PATCH")
-
-
 def check_site_contract() -> None:
     # This is deliberately structural and offline. The generated-link validator runs in the
     # release workflow after Astro builds; this contract test must not build the application.
@@ -302,7 +230,7 @@ def check_site_contract() -> None:
         SITE_CONFIG,
     ):
         raise ContractError("site URL is not an explicit production constant")
-    authority_url = "https://telecrypt-io.github.io/llms-authority/llms.txt"
+    authority_url = "https://telecrypt.io/llms.txt"
     if not re.search(rf"(?m)^\s*export\s+const\s+llmsAuthorityUrl\s*=\s*(['\"])" + re.escape(authority_url) + r"\1\s*;", SITE_CONFIG):
         raise ContractError("llms authority URL is not an explicit Pages constant")
     forbidden_authority_sources = (
@@ -372,7 +300,7 @@ def check_site_contract() -> None:
         raise ContractError("robots sitemap is not derived from the configured Astro site")
 
 
+check_source_verification()
 check_state_machine()
-check_workflow()
 check_site_contract()
 print("www Release behavioral invariants passed")

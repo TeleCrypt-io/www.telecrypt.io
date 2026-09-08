@@ -21,7 +21,6 @@ html {
 	--theme-text-muted: 0deg 0% 68%;
 	--theme-accent: 14deg 100% 67%;
 
-	--paper: #161616;
 	--hairline: #2a2a2a;
 	--faint: #555555;
 	--accent-soft-strong: rgba(255, 128, 87, 0.22);
@@ -46,16 +45,6 @@ body {
 		}
 	}
 
-	.hero > * {
-		animation: intro-fade-up 380ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
-		animation-delay: calc(var(--i, 0) * 55ms);
-	}
-	.hero > *:nth-child(1) {
-		--i: 0;
-	}
-	.hero > *:nth-child(2) {
-		--i: 1;
-	}
 }
 
 @media (prefers-reduced-motion: reduce) {
