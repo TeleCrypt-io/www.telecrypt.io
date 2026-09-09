@@ -7,6 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
+WORKFLOW = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
 VERIFY_SOURCE = (ROOT / "scripts/verify-source.sh").read_text(encoding="utf-8")
 FOOTER = (ROOT / "src/components/layout/Footer.astro").read_text(encoding="utf-8")
 BASE_HEAD = (ROOT / "src/components/BaseHead.astro").read_text(encoding="utf-8")
@@ -300,7 +301,28 @@ def check_site_contract() -> None:
         raise ContractError("robots sitemap is not derived from the configured Astro site")
 
 
+def check_pages_workflow() -> None:
+    shared_action = "TeleCrypt-io/storage.telecrypt.io/.github/actions/deploy-pages@pages-deploy-v1.0.0"
+    for fragment in (
+        "pages_artifact_id: ${{ steps.pages-upload.outputs.artifact_id }}",
+        "id: pages-upload",
+        "uses: actions/upload-pages-artifact@v5.0.0",
+        f"uses: {shared_action}",
+        "artifact-id: ${{ needs.promote.outputs.pages_artifact_id }}",
+        "build-version: ${{ github.sha }}",
+    ):
+        if fragment not in WORKFLOW:
+            raise ContractError(f"Pages workflow is missing {fragment}")
+    if "uses: actions/deploy-pages@" in WORKFLOW:
+        raise ContractError("Pages workflow still invokes the legacy deploy-pages action")
+    upload = WORKFLOW.index("id: pages-upload")
+    deploy = WORKFLOW.index(shared_action)
+    if upload >= deploy:
+        raise ContractError("Pages deployment precedes artifact upload")
+
+
 check_source_verification()
 check_state_machine()
 check_site_contract()
+check_pages_workflow()
 print("www Release behavioral invariants passed")

@@ -145,7 +145,7 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    permissions: {contents: write}
+    permissions: {contents: write, actions: read}
     outputs:
       release_id: ${{ steps.publish.outputs.release_id }}
     env:
@@ -156,10 +156,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
         with: {fetch-depth: 0, persist-credentials: false}
-      - uses: actions/download-artifact@v8.0.1
-        with:
-          name: www-release-${{ github.run_id }}-${{ github.sha }}
-          path: release
+      - name: Download the exact tested site archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download "$GITHUB_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "www-release-${GITHUB_RUN_ID}-${GITHUB_SHA}" \
+            --dir release
       - name: Create or reuse the exact draft Release
         id: publish
         env:
@@ -415,6 +420,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions: {contents: read, pages: write, id-token: write}
+    outputs:
+      pages_artifact_id: ${{ steps.pages-upload.outputs.artifact_id }}
     env:
       RELEASE_TAG: ${{ github.ref_name }}
       RELEASE_SHA: ${{ github.sha }}
@@ -521,7 +528,8 @@ jobs:
       - name: Revalidate source before Pages upload
         shell: bash
         run: bash scripts/verify-source.sh
-      - uses: actions/upload-pages-artifact@v5.0.0
+      - id: pages-upload
+        uses: actions/upload-pages-artifact@v5.0.0
         with: {path: dist}
 
   deploy:
@@ -542,4 +550,7 @@ jobs:
           RELEASE_SHA: ${{ github.sha }}
         run: bash scripts/verify-source.sh
       - id: deployment
-        uses: actions/deploy-pages@v5.0.1
+        uses: TeleCrypt-io/storage.telecrypt.io/.github/actions/deploy-pages@pages-deploy-v1.0.0
+        with:
+          artifact-id: ${{ needs.promote.outputs.pages_artifact_id }}
+          build-version: ${{ github.sha }}
