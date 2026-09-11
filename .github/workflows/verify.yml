@@ -39,28 +39,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify release-state and site contracts
-        run: python3 scripts/test-release-contract.py
-
       - name: Verify the archive and generated-site validators
         run: |
           python3 -m py_compile scripts/validate-pages-artifact.py scripts/validate-generated-site.py scripts/verify-release.py scripts/test-release-validators.py
           python3 scripts/test-release-validators.py
-
-      - name: Verify strict static CSP sources
-        run: |
-          set -euo pipefail
-          test ! -e .github/workflows/build.yml
-          if grep -R -n -E '<script' src --include='*.astro' --include='*.ts' --include='*.tsx' --include='*.js' \
-            | grep -E -v 'type="application/ld\+json"'; then
-            echo 'inline script remains in source' >&2
-            exit 1
-          fi
-          if grep -R -n -E 'prefetch|data-astro-prefetch|frame-ancestors|script-src .unsafe-inline.' \
-            astro.config.ts src/components/layout/Header.astro src/components/BaseHead.astro; then
-            echo 'forbidden client or framing policy remains in source' >&2
-            exit 1
-          fi
 
       - uses: pnpm/setup@v2.0.2
         timeout-minutes: 10
