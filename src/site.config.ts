@@ -2,7 +2,7 @@ export const seatPrice = "15 EUR per seat";
 // This is a production-only site. The host is fixed; there is no environment
 // input and no stage www variant.
 export const siteUrl = "https://www.telecrypt.io";
-export const llmsAuthorityUrl = "https://telecrypt.io/llms.txt";
+export const llmsAuthorityUrl = "https://telecrypt-io.github.io/llms-authority/llms.txt";
 export const planUrl = "https://backend.telecrypt.io/plan";
 
 export const siteConfig = {
